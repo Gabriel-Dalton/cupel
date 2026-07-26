@@ -26,28 +26,28 @@ export default function VerifyPage() {
           every hash and re-measures every recorded number from the bytes themselves, in your
           browser. Files never leave your machine.
         </p>
-        <div className="defaults">
-          <div className="defaults__rule">
+        <div className="problems">
+          <article className="problem">
             <h2>Refuses to trust the ledger</h2>
             <p>
               Structure, colour drift, and distortion are recomputed from the shipped bytes, never
               read back from the receipt. The recorded numbers either reproduce or they do not.
             </p>
-          </div>
-          <div className="defaults__rule">
+          </article>
+          <article className="problem">
             <h2>Refuses to re-encode</h2>
             <p>
               Verification only decodes and measures, so encoder differences between machines cannot
-              blur the verdict. Byte-for-byte reproduction is not required, and not attempted.
+              blur the verdict. Byte for byte reproduction is not required, and not attempted.
             </p>
-          </div>
-          <div className="defaults__rule">
+          </article>
+          <article className="problem">
             <h2>Refuses to guess</h2>
             <p>
               A missing file, bytes that fail to hash to what the ledger recorded, or a reference
               this page cannot re-derive are each reported as exactly that, never papered over.
             </p>
-          </div>
+          </article>
         </div>
       </header>
 

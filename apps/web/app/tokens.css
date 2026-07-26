@@ -1,44 +1,55 @@
 /*
  * cupel design tokens.
  *
- * The identity is the instrument, not the theme park: warm paper neutrals,
- * one amber accent, hairline ledger rules, tabular numerals. Dark is the
- * canonical theme; light is a full first class theme, both driven from the
- * same token names.
+ * The surfaces are deliberately NEUTRAL grey, never warm. This is a tool for
+ * judging image quality, and a warm background lies about the colour of the
+ * images sitting on it. Photo software is neutral for exactly this reason.
  *
- * Every colour, size, and duration used anywhere in the site comes from
- * this file. Components never carry raw values.
+ * There are exactly two accents and they both mean something. Green is
+ * "cupel acted and saved bytes". Red is "cupel stopped and protected the
+ * file". Those are the only two outcomes the product has, so they are the
+ * only two colours the design gets. Anything decorative stays greyscale.
+ *
+ * There is no monospaced family. Numbers align with tabular figures in the
+ * normal typeface instead: data should line up without the page looking like
+ * a terminal, because "only for people who live in terminals" is the audience
+ * limit this design exists to break.
+ *
+ * Every colour, size, and duration used anywhere in the site comes from this
+ * file. Components never carry raw values.
  */
 
 :root {
   color-scheme: light dark;
 
   /* Type families are provided by next/font in app/layout.tsx:
-     --font-display (Fraunces), --font-body (IBM Plex Sans),
-     --font-mono (IBM Plex Mono). */
+     --font-display (Bricolage Grotesque), --font-body (Manrope). */
+  --font-data: var(--font-body), system-ui, sans-serif;
 
   /* Type scale */
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
-  --text-md: 1.125rem;
-  --text-lg: 1.375rem;
-  --text-xl: clamp(1.5rem, 1.15rem + 1.75vw, 2.2rem);
-  --text-2xl: clamp(1.9rem, 1.3rem + 3vw, 3rem);
-  --text-hero: clamp(2.5rem, 1.7rem + 4.5vw, 4.6rem);
+  --text-md: 1.0625rem;
+  --text-lg: 1.3125rem;
+  --text-xl: clamp(1.5rem, 1.15rem + 1.75vw, 2.1rem);
+  --text-2xl: clamp(1.85rem, 1.25rem + 3vw, 2.9rem);
+  --text-hero: clamp(2.4rem, 1.4rem + 5vw, 4.75rem);
 
-  --leading-tight: 1.12;
-  --leading-snug: 1.35;
-  --leading-body: 1.65;
+  --leading-tight: 1.05;
+  --leading-snug: 1.28;
+  --leading-body: 1.62;
 
-  --tracking-wide: 0.18em;
-  --tracking-wider: 0.24em;
+  --tracking-tight: -0.022em;
+  --tracking-wide: 0.1em;
+  --tracking-wider: 0.16em;
 
-  --weight-light: 340;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
 
   /* Spacing scale, 4px base */
   --space-1: 0.25rem;
@@ -52,17 +63,18 @@
   --space-9: 6rem;
   --space-10: 8rem;
 
-  /* Radii: an assay ledger has sharp corners. Keep them near zero. */
-  --radius-1: 2px;
-  --radius-2: 4px;
+  /* Radii. Soft enough to feel approachable, not a pill. */
+  --radius-1: 6px;
+  --radius-2: 10px;
+  --radius-3: 18px;
 
-  /* Hairlines and elevation. Elevation is expressed with lines, not blur. */
-  --shadow-1: 0 1px 0 rgb(0 0 0 / 0.04);
+  --shadow-1: 0 1px 2px rgb(16 20 26 / 0.05);
+  --shadow-2: 0 12px 32px -12px rgb(16 20 26 / 0.18);
 
   /* Layout */
-  --shell-max: 72rem;
+  --shell-max: 74rem;
   --shell-pad: clamp(1.25rem, 5vw, 2.5rem);
-  --header-h: 3.5rem;
+  --header-h: 3.75rem;
 
   /* Z layers */
   --z-header: 20;
@@ -73,42 +85,70 @@
   --dur-fast: 140ms;
   --dur-slow: 420ms;
 
-  /* Light theme: bone paper, warm ink, bronze accent */
-  --bg: #f5f2ea;
-  --bg-raised: #faf8f2;
-  --bg-inset: #ece7da;
-  --ink: #211d16;
-  --ink-muted: #5b5347;
-  --ink-faint: #8b8271;
-  --line: #ddd6c8;
-  --line-strong: #b9b09c;
-  --accent: #b8781d;
-  --accent-ink: #8a5200;
-  --accent-wash: rgb(184 120 29 / 0.08);
-  --ok: #2f6b46;
-  --selection-bg: #ecd9b4;
-  --selection-ink: #211d16;
-  --glow: rgb(184 120 29 / 0.07);
+  /* Light: a cool neutral studio wall */
+  --bg: #f6f7f9;
+  --bg-raised: #ffffff;
+  --bg-inset: #eceef2;
+  --ink: #14171c;
+  --ink-muted: #565f6b;
+  --ink-faint: #838d99;
+  --line: #e0e4ea;
+  --line-strong: #c3cad3;
+
+  /* Verdict green: cupel acted. Contrast checked against --bg-raised. */
+  --keep: #0b7d57;
+  --keep-ink: #075c3f;
+  --keep-wash: rgb(11 125 87 / 0.08);
+  --keep-line: rgb(11 125 87 / 0.28);
+
+  /* Verdict red: cupel stopped. */
+  --stop: #c23a1d;
+  --stop-ink: #982c14;
+  --stop-wash: rgb(194 58 29 / 0.07);
+  --stop-line: rgb(194 58 29 / 0.26);
+
+  /* Interactive colour is the green: acting is the product. */
+  --accent: var(--keep);
+  --accent-ink: var(--keep-ink);
+  --accent-wash: var(--keep-wash);
+  --ok: var(--keep);
+
+  --selection-bg: #cdeadd;
+  --selection-ink: #14171c;
+  --glow: rgb(11 125 87 / 0.05);
+
+  /* The neutral checkerboard behind transparent image previews. */
+  --checker: #dfe3e9;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark theme: charcoal crucible, bone text, molten amber accent */
-    --bg: #141210;
-    --bg-raised: #1b1815;
-    --bg-inset: #0e0d0b;
-    --ink: #ebe5d8;
-    --ink-muted: #b2a994;
-    --ink-faint: #857c6b;
-    --line: #2b2721;
-    --line-strong: #474035;
-    --accent: #d9a441;
-    --accent-ink: #d9a441;
-    --accent-wash: rgb(217 164 65 / 0.09);
-    --ok: #93c4a1;
-    --selection-bg: #3f351d;
-    --selection-ink: #ebe5d8;
-    --glow: rgb(217 164 65 / 0.06);
-    --shadow-1: 0 1px 0 rgb(0 0 0 / 0.4);
+    /* Dark: a photo editor canvas. Neutral and slightly cool, never black. */
+    --bg: #15181c;
+    --bg-raised: #1d2126;
+    --bg-inset: #101317;
+    --ink: #eef1f4;
+    --ink-muted: #a7b0bb;
+    --ink-faint: #78828e;
+    --line: #2a2f36;
+    --line-strong: #414852;
+
+    --keep: #3fca92;
+    --keep-ink: #6bdcac;
+    --keep-wash: rgb(63 202 146 / 0.11);
+    --keep-line: rgb(63 202 146 / 0.32);
+
+    --stop: #ff7a54;
+    --stop-ink: #ff9576;
+    --stop-wash: rgb(255 122 84 / 0.1);
+    --stop-line: rgb(255 122 84 / 0.3);
+
+    --selection-bg: #1f4b3a;
+    --selection-ink: #eef1f4;
+    --glow: rgb(63 202 146 / 0.06);
+    --checker: #2a2f36;
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-2: 0 16px 40px -16px rgb(0 0 0 / 0.6);
   }
 }

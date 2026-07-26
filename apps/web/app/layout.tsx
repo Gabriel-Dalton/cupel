@@ -1,60 +1,89 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
+import { Bricolage_Grotesque, Manrope } from 'next/font/google'
 import { NavLink } from '../components/nav-link'
 import './globals.css'
 
 // Fonts are downloaded at build time and self hosted by next/font. The
 // running site makes no external requests.
-const display = Fraunces({
+//
+// Bricolage Grotesque for display: a grotesque with real character in the
+// wide weights, which keeps headlines from reading as another neutral tech
+// sans. Manrope for body and data: friendly, geometric, and it has proper
+// tabular figures, which is what lets this site show aligned numbers without
+// a monospaced face anywhere (see brand.md section 7).
+const display = Bricolage_Grotesque({
   subsets: ['latin'],
+  weight: ['600', '700', '800'],
   variable: '--font-display',
   display: 'swap',
-  axes: ['opsz'],
 })
 
-const body = IBM_Plex_Sans({
+const body = Manrope({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-body',
-  display: 'swap',
-})
-
-const mono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: {
-    default: 'cupel: assay before you compress',
+    default: 'cupel: make images smaller without making them worse',
     template: '%s · cupel',
   },
   description:
-    'An open source image toolchain that measures the quality a source image has left, spends a byte budget only where it buys visible fidelity, and refuses to damage what cannot recover. The measurement layer ships today; the rest is built in the open.',
+    'An open source image tool that checks how much quality a picture actually has left, removes only what it can remove safely, and refuses to touch files that have nothing left to give. Try it in your browser, nothing is uploaded.',
 }
 
-/** The cupel itself: a shallow assay dish holding the recovered bead. */
+/**
+ * The mark is the product: one picture, two states. A frame split down the
+ * diagonal, the original on one side and the smaller version on the other.
+ * It reads at 20px, which the previous dish-and-bead drawing did not, and it
+ * needs no explanation about metallurgy.
+ */
 function Mark() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="brand__mark"
+    >
+      <rect
+        x="2.25"
+        y="3.75"
+        width="19.5"
+        height="16.5"
+        rx="3.25"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      {/* The compressed half, in the verdict green. */}
       <path
-        d="M3.5 10.5h17c0 3.5-2.5 8-8.5 8s-8.5-4.5-8.5-8Z"
+        d="M20 5.4v13.1a1.75 1.75 0 0 1-1.75 1.75H8.2L19.1 4.9c.35.1.66.28.9.5Z"
+        fill="currentColor"
+        opacity="0.9"
+      />
+      {/* Sun and hill: the universal "this is a picture" glyph. */}
+      <circle cx="8.1" cy="9.1" r="1.6" fill="currentColor" opacity="0.45" />
+      <path
+        d="M3.1 17.4 6.6 13l2.8 3.3"
         stroke="currentColor"
         strokeWidth="1.5"
+        strokeLinecap="round"
         strokeLinejoin="round"
+        opacity="0.45"
       />
-      <circle cx="12" cy="8" r="2.1" fill="currentColor" />
     </svg>
   )
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
@@ -78,8 +107,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <footer className="site-footer">
           <div className="shell site-footer__row">
             <p>
-              Code Apache-2.0. The image corpus, when it lands, CC BY 4.0. Pre-release, built in the
-              open.
+              Free and open source, Apache-2.0. Still pre-release, built in the open. The name comes
+              from a small dish used to test what a metal sample is really worth, which is the same
+              idea: test first, then decide.
             </p>
             <p>
               <Link href="/docs">Docs</Link> · <Link href="/docs/roadmap">Roadmap</Link> ·{' '}

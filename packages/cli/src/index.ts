@@ -11,7 +11,10 @@ export function buildProgram(): Command {
   const program = new Command()
   program
     .name('cupel')
-    .description('Assay before you compress. An image toolchain that measures before it touches.')
+    .description(
+      'Make images smaller without making them worse. cupel measures what a file has left ' +
+        'before it touches anything, and refuses when there is nothing safe to remove.',
+    )
 
   registerInspect(program)
   registerAudit(program)

@@ -1,10 +1,16 @@
 # cupel
 
-> Assay before you compress.
+> Make your images smaller without making them worse.
 
-A cupel is the porous bone ash vessel used in fire assay, the reference method for determining what a sample of ore is actually worth. That is the stance of this project: an image is a sample to be assayed, not just a file to be shrunk.
+Most image tools ask how small a file can get. cupel asks a different question
+first: what has already been done to this picture, and is there any quality
+left to safely remove? When the answer is no, it stops and tells you why
+instead of quietly wrecking the file.
 
-Most image tooling asks "how small can this get". cupel asks what the file has already been through, whether there is any quality left to spend, and refuses to touch it when there is not.
+Try it in your browser at the project site. Nothing is uploaded.
+
+(The name comes from a small dish used to test what a metal sample is really
+worth before anyone acts on it. Same idea: test first, then decide.)
 
 ## What it does today
 

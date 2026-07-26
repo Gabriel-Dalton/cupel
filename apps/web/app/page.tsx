@@ -1,188 +1,104 @@
 import Link from 'next/link'
 import { runAssay } from '../lib/assay'
+import { TryIt } from './_demo/try-it'
+import './_demo/demo.css'
 
 /**
- * Landing page. Statically rendered; runAssay() executes the real
- * @cupel/core measurement code at build time, so every number in the
- * specimen ledger is computed by the shipped library, never typed in.
+ * Landing page.
  *
- * Copy discipline (brand.md): verbs over adjectives, defaults and refusals
- * stated up front, technical lexicon quarantined to /docs, and exactly one
- * use of the word "assay" as the permitted hook.
+ * The thesis is the demo, not the headline: a reader picks a photograph and
+ * watches the real pipeline either save bytes or refuse to touch the file.
+ * Everything else on the page exists to set that up or to explain how to run
+ * the same thing on their own images.
+ *
+ * Copy discipline lives in brand.md. Short version: plain words, benefit
+ * before mechanism, no dash characters, and the technical vocabulary stays in
+ * the docs. runAssay() still executes the shipped measurement code at build
+ * time, and its invariants fail the build rather than let this page ship a
+ * stale claim.
  */
 
-const PIPELINE = [
+/** The three things that actually go wrong with images on real sites. */
+const PROBLEMS = [
   {
-    step: '01',
-    verb: 'Measure',
-    status: { className: 'badge badge--done', label: 'ships today' },
+    title: 'It was already squashed once',
     body:
-      'Decode the pixels and read what is actually there: how much structure survives, how far ' +
-      'colour has drifted, where fine detail lives, and the resolution the image really carries ' +
-      'rather than the one it declares.',
+      'An upload gets compressed by the CMS, then again by a build step, then again by whoever ' +
+      'ran a bulk optimizer last year. Every pass takes something and none of them give it back. ' +
+      'The usual tools cannot tell, so they squash it again.',
+    fix: 'cupel checks the file first and stops when there is nothing safe left to take.',
   },
   {
-    step: '02',
-    verb: 'Prove',
-    status: { className: 'badge badge--done', label: 'ships today' },
+    title: 'It is far bigger than the space it sits in',
     body:
-      'Reconstruct what has been done to the file: how many times it was compressed, at what ' +
-      'quality, by which encoder. That history sets the headroom, and headroom decides whether ' +
-      're-encoding is allowed at all.',
+      'A 4000 pixel wide photo in a box 400 pixels wide sends about a hundred times more data ' +
+      'than the screen can use. This is the single most common reason pages are heavy, and it is ' +
+      'invisible when you look at the page.',
+    fix: 'cupel compares what the file carries against what the layout asks for.',
   },
   {
-    step: '03',
-    verb: 'Allocate',
-    status: { className: 'badge badge--now', label: 'math ships, not wired' },
+    title: 'It is in the wrong format',
     body:
-      'Treat the page as one byte budget rather than sixty separate files. Spend it where it ' +
-      'buys the most visible quality, which is almost never evenly. The solver is built and ' +
-      'tested; today the writer still decides one file at a time.',
-  },
-  {
-    step: '04',
-    verb: 'Receipt',
-    status: { className: 'badge badge--done', label: 'ships today' },
-    body:
-      'Record every decision, every refusal, and the numbers behind them in a form anyone can ' +
-      'recompute in a browser. A claim you cannot check is marketing.',
+      'PNG is built for logos, screenshots, and flat graphics. Save a photograph as PNG and it ' +
+      'stores every speck of grain perfectly, which is why a photo can end up ten times larger ' +
+      'than it needs to be.',
+    fix: 'Try the third sample above. That one saves more than 90 percent.',
   },
 ]
 
 /**
- * A real captured run against five generated specimens, not an illustration.
- * Two files are refused for exhausted headroom, one vector is skipped
- * untouched, and two are encoded. Reproduce it with the fixtures in
- * packages/cli/test.
+ * Numbered because this genuinely is a sequence: you install it, then you
+ * look without touching anything, then you let it write.
  */
-const TRANSCRIPT_LINES: { text: string; kind?: 'cmd' | 'refuse' }[] = [
-  { text: '$ cupel write ./specimens', kind: 'cmd' },
-  { text: '' },
-  { text: 'asset          decision  before    after    saved  ssim    output' },
-  { text: 'chart.png      REFUSED   4.4 kB    -        -      -       -', kind: 'refuse' },
-  { text: 'hero.jpg       encoded   156.2 kB  76.0 kB  51.4%  0.9711  hero.webp' },
-  { text: 'laundered.png  encoded   261.4 kB  18.1 kB  93.1%  0.9840  laundered.jpg' },
-  { text: 'logo.svg       skipped   116 B     -        -      -       -' },
-  { text: 'tired.jpg      REFUSED   18.3 kB   -        -      -       -', kind: 'refuse' },
-  { text: '' },
-  { text: 'Reasons' },
-  { text: '  tired.jpg: headroom none: estimated original quality 34 is below 60.' },
-  { text: '    Re-encoding is refused; recover a better original instead' },
-  { text: '  chart.png: headroom none: blocking score 1.00 in a lossless container:' },
-  { text: '    pixels were laundered from a jpeg' },
-  { text: '  logo.svg: svg is reported but not decoded: cupel never rasterizes a vector' },
-  { text: '' },
-  { text: 'saved  323.5 kB (73.4%)' },
-  { text: '' },
-  { text: 'Nothing was written. This was a dry run, which is the default.' },
-  { text: 'Re-run with --apply to write these outputs and the receipts.' },
-]
-
-const MEASUREMENTS = [
+const STEPS = [
   {
-    name: 'Structural survival',
+    heading: 'Get it',
     body:
-      'A windowed comparison of local structure between reference and candidate, where 1.000 ' +
-      'means nothing was lost. Identity scores exactly 1, and the comparison is symmetric by ' +
-      'construction.',
+      'There is no npm package yet, so for now you build it from source. Node 20 or newer and ' +
+      'pnpm 10.',
+    command:
+      'git clone https://github.com/Gabriel-Dalton/cupel\ncd cupel\npnpm install\npnpm build',
+    note: 'Everything after this runs on your machine. Nothing is sent anywhere.',
   },
   {
-    name: 'Colour drift',
+    heading: 'Look before you touch',
     body:
-      'Perceptual colour distance, reported as the mean and the worst 5 percent. It exists ' +
-      'because the structure check runs on grayscale and is provably blind to colour-only ' +
-      'damage.',
+      'Point it at a folder of images. It reads them, tells you what it found, and writes nothing ' +
+      'at all. This is the command to run first, and it is safe to run on anything.',
+    command: 'node packages/cli/bin/cupel.js audit ./public',
+    note:
+      'You get a row per image: how big it is, how much quality is left, and which files it would ' +
+      'refuse to touch.',
   },
   {
-    name: 'Detail',
+    heading: 'Let it write, and keep the receipt',
     body:
-      'Second-derivative variance over tiles at a normalized scale, reporting the sharpest ' +
-      'region rather than the average, so one sharp subject proves sharpness even in a sea of ' +
-      'bokeh.',
-  },
-  {
-    name: 'Seam energy',
-    body:
-      'Gradient energy on 8x8 block boundaries measured against the interior. Ratios above 1 ' +
-      'expose block-based compression in a file’s past, even after it was re-saved in a ' +
-      'lossless format.',
-  },
-  {
-    name: 'Real resolution',
-    body:
-      'Where the image’s frequency content actually stops, converted back into pixels. An ' +
-      'enlarged image declares dimensions it cannot back, and this measure calls the bluff.',
+      'Still a dry run by default. Add the apply flag and it writes the new files, keeps a copy ' +
+      'of every original, and records what it did. It refuses to run on a folder with ' +
+      'uncommitted changes unless you insist, because a receipt only means something against a ' +
+      'known starting point.',
+    command:
+      'node packages/cli/bin/cupel.js write ./public\nnode packages/cli/bin/cupel.js write ./public --apply',
+    note: 'Then run verify to have it re-check its own numbers against the files on disk.',
   },
 ]
 
-const ROADMAP = [
-  {
-    id: 'M0',
-    name: 'Skeleton',
-    status: { className: 'badge badge--done', label: 'done' },
-    body: 'Monorepo, CI, licenses, and both codec adapters behind one shared interface.',
-  },
-  {
-    id: 'M1',
-    name: 'Measurement',
-    status: { className: 'badge badge--done', label: 'done' },
-    body: 'The five measurements above, with the test suite that keeps them honest.',
-  },
-  {
-    id: 'M2',
-    name: 'Site and playground',
-    status: { className: 'badge badge--done', label: 'done' },
-    body:
-      'This site and its docs, plus an in-browser demo that runs a full quality sweep without ' +
-      'uploading anything.',
-  },
-  {
-    id: 'M3',
-    name: 'File history',
-    status: { className: 'badge badge--done', label: 'done' },
-    body:
-      'Read a file’s compression history from its own bytes: estimated original quality, ' +
-      'generation count, laundered files. Shipped as cupel inspect.',
-  },
-  {
-    id: 'M4',
-    name: 'Auditor',
-    status: { className: 'badge badge--now', label: 'cli done' },
-    body:
-      'Point it at a directory or a page and get a read-only report: what is oversized, what is ' +
-      'damaged, what is recoverable. Writes nothing. The hosted version is still to come.',
-  },
-  {
-    id: 'M5',
-    name: 'Allocator',
-    status: { className: 'badge badge--now', label: 'math done' },
-    body:
-      'The page-level budget solver. Built and tested in the core library; nothing calls it with ' +
-      'a real page budget yet.',
-  },
-  {
-    id: 'M6',
-    name: 'Writer and receipts',
-    status: { className: 'badge badge--done', label: 'done' },
-    body:
-      'The only milestone that writes files. Git-clean guard, atomic writes, originals preserved, ' +
-      'a receipt for every change, and a browser page that verifies any receipt.',
-  },
-  {
-    id: 'M7',
-    name: 'Source recovery',
-    status: { className: 'badge badge--now', label: 'library done' },
-    body:
-      'Find the better original your pipeline buried: CMS size suffixes, retina siblings, git ' +
-      'history. Seven recoverers exist and are tested; the writer does not call them yet.',
-  },
-  {
-    id: 'M8',
-    name: 'Corpus, action, skill',
-    status: { className: 'badge badge--next', label: 'next' },
-    body: 'A public benchmark corpus and leaderboard, a GitHub Action, and a Claude Code skill.',
-  },
+const STATUS = [
+  { label: 'Reading a file and reporting on it', state: 'done' as const },
+  { label: 'Refusing files with nothing left to give', state: 'done' as const },
+  { label: 'Writing smaller files, with receipts', state: 'done' as const },
+  { label: 'Checking receipts in a browser', state: 'done' as const },
+  { label: 'Auditing a whole page by URL', state: 'part' as const },
+  { label: 'Spending one budget across a whole page', state: 'soon' as const },
+  { label: 'Finding the better original your pipeline buried', state: 'soon' as const },
 ]
+
+const STATE_LABEL = { done: 'working now', part: 'partly done', soon: 'being built' }
+const STATE_CLASS = {
+  done: 'badge badge--done',
+  part: 'badge badge--now',
+  soon: 'badge badge--next',
+}
 
 export default function Home() {
   const assay = runAssay()
@@ -190,135 +106,140 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <div className="shell">
-          <p className="eyebrow eyebrow--accent">Open source image toolchain</p>
-          <h1 className="hero__title">Assay before you compress.</h1>
+        <div className="shell hero__inner">
+          <p className="eyebrow eyebrow--accent">Free and open source</p>
+          <h1 className="hero__title">Make your images smaller without making them worse.</h1>
           <p className="hero__lede">
-            cupel measures the quality a source image actually has left, refuses to re-encode what
-            has none, and keeps a receipt anyone can recheck for every decision it makes. Four
-            commands ship today. The page-level byte budget and source recovery are built but not
-            yet wired in, and the roadmap below says so plainly.
+            cupel looks at a picture, works out how much quality it actually has left, and only
+            removes what it can remove safely. When a file has nothing left to give, it stops and
+            tells you why instead of quietly wrecking it.
           </p>
           <div className="hero__actions">
-            <Link className="btn btn--primary" href="/docs/getting-started">
-              Get started
-            </Link>
-            <a className="btn" href="https://github.com/Gabriel-Dalton/cupel">
-              Source on GitHub
+            <a className="btn btn--primary" href="#try">
+              Try it on a photo
             </a>
+            <Link className="btn" href="/docs/getting-started">
+              Read the docs
+            </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="section" aria-labelledby="defaults-heading">
-        <div className="shell">
-          <p className="eyebrow" id="defaults-heading">
-            Default behaviour
+          <p className="hero__meta">
+            Runs on your own machine. Never writes a file unless you ask it to.
           </p>
-          <div className="defaults">
-            <div className="defaults__rule">
-              <h2>It refuses to re-encode a spent source.</h2>
-              <p>
-                A file with no quality headroom left is flagged and kept, not squeezed again.
-                Another pass can only destroy what remains. Refusal is a first class result, not an
-                error.
-              </p>
-            </div>
-            <div className="defaults__rule">
-              <h2>It never writes without an explicit flag.</h2>
-              <p>
-                Every run is read-only until you say otherwise. There is no mode in which cupel
-                silently replaces your files.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="pipeline-heading">
+      <section className="section section--try" id="try" aria-labelledby="try-heading">
         <div className="shell">
-          <p className="eyebrow">The pipeline</p>
-          <h2 className="section__title" id="pipeline-heading">
-            Four steps, in order.
+          <p className="eyebrow">Try it</p>
+          <h2 className="section__title" id="try-heading">
+            Pick a picture and watch it decide.
           </h2>
           <p className="section__lede">
-            Each step ships as its own milestone and is useful on its own. The badges say what is
-            real today.
+            This is the real thing, running in your browser. The first photo has plenty of quality
+            left, so it gets much smaller. The second is the same photo after a CMS already
+            compressed it, and cupel will refuse to touch it. The third is a photo saved as a PNG,
+            which is the biggest easy win there is.
           </p>
-          <ol className="pipeline">
-            {PIPELINE.map((p) => (
-              <li key={p.step} className="pipeline__step">
-                <span className="pipeline__num" aria-hidden="true">
-                  {p.step}
+          <TryIt />
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="problems-heading">
+        <div className="shell">
+          <p className="eyebrow">Why bother</p>
+          <h2 className="section__title" id="problems-heading">
+            Three things quietly making your pages heavy.
+          </h2>
+          <div className="problems">
+            {PROBLEMS.map((problem) => (
+              <article key={problem.title} className="problem">
+                <h3>{problem.title}</h3>
+                <p>{problem.body}</p>
+                <p className="problem__fix">{problem.fix}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--steps" aria-labelledby="steps-heading">
+        <div className="shell">
+          <p className="eyebrow">How to use it</p>
+          <h2 className="section__title" id="steps-heading">
+            Three commands, in this order.
+          </h2>
+          <p className="section__lede">
+            The order matters. The first two cannot change a single file, so you can see exactly
+            what would happen before anything does.
+          </p>
+          <ol className="steps">
+            {STEPS.map((step, i) => (
+              <li key={step.heading} className="step">
+                <span className="step__num" aria-hidden="true">
+                  {i + 1}
                 </span>
-                <h3>{p.verb}</h3>
-                <p>{p.body}</p>
-                <span className={p.status.className}>{p.status.label}</span>
+                <div className="step__body">
+                  <h3>{step.heading}</h3>
+                  <p>{step.body}</p>
+                  <pre className="cmd" tabIndex={0}>
+                    <code>{step.command}</code>
+                  </pre>
+                  <p className="step__note">{step.note}</p>
+                </div>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="run-heading">
+      <section className="section" aria-labelledby="receipts-heading">
         <div className="shell">
-          <p className="eyebrow">One real run</p>
-          <h2 className="section__title" id="run-heading">
-            What it looks like when it refuses.
+          <p className="eyebrow">Receipts</p>
+          <h2 className="section__title" id="receipts-heading">
+            You do not have to take our word for any of it.
           </h2>
           <p className="section__lede">
-            Five specimens, generated from a seed so you can reproduce them. Two are refused because
-            nothing is left to spend, one vector is reported and left untouched, and two are
-            re-encoded. No file was modified: writing takes a second flag.
+            Every change cupel makes gets recorded along with the numbers behind it. You can hand
+            that record and the files to anyone, and they can recheck the whole thing in a browser
+            without installing cupel at all. If a record does not match the file it describes, the
+            check says so plainly rather than passing quietly.
           </p>
-          <div className="transcript">
-            <pre>
-              <code>
-                {TRANSCRIPT_LINES.map((line, i) => (
-                  <span key={i}>
-                    {line.kind === undefined ? (
-                      line.text
-                    ) : (
-                      <span className={`transcript__${line.kind}`}>{line.text}</span>
-                    )}
-                    {'\n'}
-                  </span>
-                ))}
-              </code>
-            </pre>
-            <p className="transcript__caption">
-              Captured from cupel write on generated specimens. Columns trimmed to fit.
-            </p>
+          <div className="hero__actions">
+            <Link className="btn" href="/verify">
+              Check a record
+            </Link>
+            <Link className="btn" href="/playground">
+              Explore the full quality curve
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="exists-heading">
+      <section className="section section--muted" aria-labelledby="measure-heading">
         <div className="shell">
-          <p className="eyebrow">What exists today</p>
-          <h2 className="section__title" id="exists-heading">
-            Five measurements you can rerun.
+          <p className="eyebrow">How it checks</p>
+          <h2 className="section__title" id="measure-heading">
+            Four ways an image can be damaged, and how each one shows up.
           </h2>
           <p className="section__lede">
-            The numbers below are not typed into this page. At build time the site generates a
-            seeded reference image, damages it four ways, and runs the shipped measurement code
-            against each specimen. If a number ever stops demonstrating what this copy claims, the
-            build fails instead of shipping the stale claim.
+            The numbers below are not written into this page. When the site is built, it generates a
+            clean test image, damages it four different ways, and measures each one with the same
+            code the tool uses. If a result ever stopped proving the point, the build would fail
+            instead of publishing a claim that is no longer true.
           </p>
-
           <div className="table-scroll">
             <table className="ledger">
               <caption className="ledger__caption">
-                Specimen ledger, computed at build time. The reference scores {assay.selfStructure}{' '}
-                against itself: identity is exact, by contract.
+                Measured at build time. A clean image scored against itself gives exactly{' '}
+                {assay.selfStructure}, because identical files have to measure identical.
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Specimen</th>
-                  <th scope="col">Treatment</th>
+                  <th scope="col">Damage</th>
+                  <th scope="col">What was done</th>
                   <th scope="col">Reading</th>
-                  <th scope="col">Baseline</th>
-                  <th scope="col">Verdict</th>
+                  <th scope="col">Clean image</th>
+                  <th scope="col">What it tells you</th>
                 </tr>
               </thead>
               <tbody>
@@ -340,52 +261,35 @@ export default function Home() {
               </tbody>
             </table>
           </div>
-
-          <ul className="measure-list">
-            {MEASUREMENTS.map((m) => (
-              <li key={m.name}>
-                <h3>{m.name}</h3>
-                <p>{m.body}</p>
-              </li>
-            ))}
-          </ul>
-
           <p className="section__note">
-            Underneath: two codec adapters, one native and one WebAssembly, behind the same
-            interface, with a parity test holding their measurements to within 1e-6 of each other.
-            The measurement core has zero platform dependencies and runs identically in Node and the
-            browser; CI enforces that isolation mechanically. Precise definitions, proper names, and
-            known blind spots of every measurement live in{' '}
-            <Link href="/docs/metrics">the docs</Link>.
+            The exact definitions, the proper names, and the known blind spots of every measurement
+            are in <Link href="/docs/metrics">the docs</Link>.
           </p>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="roadmap-heading">
+      <section className="section" aria-labelledby="status-heading">
         <div className="shell">
-          <p className="eyebrow">Roadmap</p>
-          <h2 className="section__title" id="roadmap-heading">
-            Built in public, one milestone at a time.
+          <p className="eyebrow">Honest status</p>
+          <h2 className="section__title" id="status-heading">
+            What works today, and what does not.
           </h2>
-          <ol className="roadmap">
-            {ROADMAP.map((m) => (
-              <li key={m.id} className="roadmap__row">
-                <span className="roadmap__id" aria-hidden="true">
-                  {m.id}
-                </span>
-                <div className="roadmap__body">
-                  <h3>{m.name}</h3>
-                  <p>{m.body}</p>
-                </div>
-                <span className={m.status.className}>{m.status.label}</span>
+          <p className="section__lede">
+            This is pre-release and built in the open. The list below is kept accurate on purpose,
+            because a tool whose whole point is telling you the truth about your files should
+            probably tell you the truth about itself.
+          </p>
+          <ul className="status">
+            {STATUS.map((item) => (
+              <li key={item.label} className="status__row">
+                <span>{item.label}</span>
+                <span className={STATE_CLASS[item.state]}>{STATE_LABEL[item.state]}</span>
               </li>
             ))}
-          </ol>
+          </ul>
           <p className="section__note">
-            The four-part pitch at the top of this page is fully true only once the allocator and
-            source recovery are wired into the writer. Both are built and tested; neither is called
-            yet. Until then this page describes what exists and keeps the promises here, in the
-            roadmap, where they belong.
+            The full detail, including a list of the rough edges we already know about, is in the{' '}
+            <Link href="/docs/roadmap">roadmap</Link>.
           </p>
         </div>
       </section>
@@ -393,19 +297,19 @@ export default function Home() {
       <section className="section section--cta" aria-labelledby="cta-heading">
         <div className="shell">
           <h2 className="section__title" id="cta-heading">
-            Start with the docs.
+            Try it on your own images.
           </h2>
           <p className="section__lede">
-            How the measurements work, how the packages fit together, and how to run everything
-            yourself.
+            Start with the audit command. It reads your folder, tells you what it found, and cannot
+            change anything.
           </p>
           <div className="hero__actions">
-            <Link className="btn btn--primary" href="/docs">
-              Read the docs
+            <Link className="btn btn--primary" href="/docs/getting-started">
+              Get started
             </Link>
-            <Link className="btn" href="/playground">
-              Preview the playground
-            </Link>
+            <a className="btn" href="https://github.com/Gabriel-Dalton/cupel">
+              Source on GitHub
+            </a>
           </div>
         </div>
       </section>

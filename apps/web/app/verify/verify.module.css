@@ -1,24 +1,20 @@
-/*
- * /verify page styles. Everything rides the design tokens in app/tokens.css;
- * the two verdict colours are the one addition. --verdict-pass aliases the
- * existing --ok. --verdict-fail (ember rust, 5.7:1 on the light paper,
- * 7.2:1 on the dark) does not exist in tokens.css yet, and tokens.css is
- * outside this page's editable surface this wave, so it is scoped here and
- * should graduate to tokens.css in a later pass.
+﻿/*
+ * /verify page styles. Everything rides the design tokens in app/tokens.css.
+ *
+ * The two verdict colours used to be scoped here with a note that they should
+ * graduate into tokens.css. They have: pass and fail are now the same --keep
+ * and --stop the whole site uses, so a reader who has learned what green and
+ * red mean on the landing page already knows what they mean here. The dark
+ * mode override that used to live in this file is gone with them, because the
+ * tokens carry their own.
  */
 
 .page {
-  --verdict-pass: var(--ok);
-  --verdict-fail: #a2402c;
+  --verdict-pass: var(--keep-ink);
+  --verdict-fail: var(--stop-ink);
   padding-block: clamp(var(--space-7), 7vw, var(--space-9));
   display: grid;
   gap: var(--space-7);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --verdict-fail: #e08a70;
-  }
 }
 
 .title {
@@ -98,7 +94,8 @@
   margin: 0;
   display: grid;
   gap: var(--space-1);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   color: var(--ink-muted);
 }
@@ -128,7 +125,8 @@
 }
 
 .status {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-sm);
   color: var(--ink-muted);
 }
@@ -162,7 +160,8 @@
 
 .skips summary {
   cursor: pointer;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
@@ -204,7 +203,8 @@
 }
 
 .verdict {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -221,14 +221,16 @@
 }
 
 .asset {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   overflow-wrap: anywhere;
 }
 
 .meta {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   color: var(--ink-faint);
 }
@@ -253,7 +255,8 @@
 }
 
 .metrics thead th {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -273,7 +276,8 @@
 }
 
 .metrics td {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--ink);

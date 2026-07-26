@@ -1,4 +1,4 @@
-@import './tokens.css';
+﻿@import './tokens.css';
 
 /* Reset */
 *,
@@ -20,6 +20,18 @@ body {
   font-family: var(--font-body), ui-sans-serif, sans-serif;
   font-size: var(--text-base);
   line-height: var(--leading-body);
+  /*
+   * Ligatures off, site wide. Manrope contextually joins a double hyphen into
+   * a single long dash, which turns every command line flag on this site into
+   * a lie: "--apply" rendered as one dash is not a flag anyone can type. The
+   * brand also bans long dashes in prose outright, so a typeface that invents
+   * them is working against the copy.
+   */
+  font-variant-ligatures: none;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
   color: var(--ink);
   background-color: var(--bg);
   background-image: radial-gradient(70rem 36rem at 82% -12%, var(--glow), transparent 62%);
@@ -27,17 +39,6 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-}
-
-/* Paper grain: a self contained SVG noise field, no network fetch. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 ::selection {
@@ -72,9 +73,10 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: var(--weight-regular);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
 
@@ -82,7 +84,8 @@ code,
 pre,
 kbd,
 samp {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Layout shell */
@@ -103,7 +106,8 @@ samp {
   background: var(--bg-raised);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-2);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-sm);
   transform: translateY(calc(-100% - var(--space-4)));
 }
@@ -135,7 +139,7 @@ samp {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   color: var(--ink);
@@ -155,7 +159,8 @@ samp {
 }
 
 .site-nav a {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-sm);
   color: var(--ink-muted);
   text-decoration: none;
@@ -202,7 +207,8 @@ samp {
 
 /* Shared primitives */
 .eyebrow {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -223,7 +229,8 @@ samp {
   padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-2);
   border: 1px solid var(--line-strong);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-sm);
   color: var(--ink);
   text-decoration: none;
@@ -253,7 +260,8 @@ samp {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -337,7 +345,7 @@ samp {
   margin-block: var(--space-5);
   padding: var(--space-3) var(--space-5);
   border-left: 2px solid var(--accent);
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-md);
   color: var(--ink-muted);
 }
@@ -409,22 +417,42 @@ samp {
   padding-block: clamp(var(--space-8), 9vw, var(--space-10));
 }
 
+/* The demo is the point of the page, so it gets its own tinted plate. */
+.section--try {
+  background: var(--bg-inset);
+}
+
+.section--muted .section__lede {
+  max-width: 66ch;
+}
+
 /* Landing: hero */
 .hero {
   padding-block: clamp(var(--space-8), 10vw, var(--space-10));
 }
 
+.hero__inner {
+  max-width: 52rem;
+}
+
 .hero__title {
   font-size: var(--text-hero);
-  max-width: 16ch;
+  max-width: 20ch;
   margin-top: var(--space-4);
 }
 
 .hero__lede {
   max-width: 56ch;
   margin-top: var(--space-5);
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
   color: var(--ink-muted);
+}
+
+.hero__meta {
+  margin-top: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
 }
 
 .hero__actions {
@@ -434,62 +462,115 @@ samp {
   margin-top: var(--space-6);
 }
 
-/* Landing: the two default behaviours */
-.defaults {
+/* Landing: what goes wrong */
+.problems {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-  gap: var(--space-6);
-  margin-top: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-7);
 }
 
-.defaults__rule {
-  border-left: 2px solid var(--accent);
-  padding-left: var(--space-5);
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3);
 }
 
-.defaults__rule h2 {
+/* h2 as well as h3: /verify uses these cards under its own page heading, so
+   its cards are one level up the outline. */
+.problem h2,
+.problem h3 {
   font-size: var(--text-lg);
 }
 
-.defaults__rule p {
-  margin-top: var(--space-3);
+.problem p {
   color: var(--ink-muted);
+  font-size: var(--text-sm);
 }
 
-/* Landing: pipeline steps */
-.pipeline {
+/* The one line that says what cupel does about it, in the verdict green. */
+.problem__fix {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  color: var(--keep-ink) !important;
+  font-weight: var(--weight-medium);
+}
+
+/* Landing: the three commands. Numbered because it is a real sequence. */
+.steps {
   list-style: none;
   padding: 0;
   margin-top: var(--space-7);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   gap: var(--space-6);
 }
 
-.pipeline__step {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4) var(--space-5);
+  align-items: start;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+
+.step__num {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.step__body {
+  display: grid;
   gap: var(--space-3);
-  border-top: 1px solid var(--line-strong);
-  padding-top: var(--space-4);
+  min-width: 0;
 }
 
-.pipeline__num {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  color: var(--accent-ink);
-  letter-spacing: var(--tracking-wide);
-}
-
-.pipeline__step h3 {
+.step__body h3 {
   font-size: var(--text-lg);
 }
 
-.pipeline__step p {
+.step__body p {
+  max-width: 62ch;
   color: var(--ink-muted);
+}
+
+.step__note {
   font-size: var(--text-sm);
-  flex-grow: 1;
+}
+
+/*
+ * Commands. There is no monospaced face on this site (brand.md section 7), so
+ * these are set in the body font with tabular figures and tight tracking on a
+ * tinted surface. Commands here are short enough that nothing needs to align
+ * in columns.
+ */
+.cmd {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  overflow-x: auto;
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  white-space: pre;
 }
 
 /* Landing: specimen ledger */
@@ -514,7 +595,8 @@ samp {
   text-align: left;
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--line);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   color: var(--ink-faint);
 }
@@ -528,7 +610,8 @@ samp {
 }
 
 .ledger thead th {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -553,7 +636,8 @@ samp {
 }
 
 .ledger__num {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   white-space: nowrap;
@@ -567,80 +651,25 @@ samp {
   color: var(--ink-faint);
 }
 
-/* Landing: measurement list */
-.measure-list {
-  list-style: none;
-  padding: 0;
-  margin-top: var(--space-7);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: var(--space-5) var(--space-6);
-}
-
-.measure-list li {
-  border-top: 1px solid var(--line);
-  padding-top: var(--space-4);
-}
-
-.measure-list h3 {
-  font-family: var(--font-body), sans-serif;
-  font-weight: var(--weight-semibold);
-  font-size: var(--text-base);
-}
-
-.measure-list p {
-  margin-top: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--ink-muted);
-}
-
-/* Landing: roadmap */
-.roadmap {
+/* Landing: honest status list */
+.status {
   list-style: none;
   padding: 0;
   margin-top: var(--space-7);
 }
 
-.roadmap__row {
-  display: grid;
-  grid-template-columns: 3.5rem 1fr auto;
-  gap: var(--space-2) var(--space-5);
+.status__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: baseline;
+  gap: var(--space-2) var(--space-5);
   padding-block: var(--space-4);
   border-top: 1px solid var(--line);
 }
 
-.roadmap__row:last-child {
+.status__row:last-child {
   border-bottom: 1px solid var(--line);
-}
-
-.roadmap__id {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-xs);
-  color: var(--ink-faint);
-}
-
-.roadmap__body h3 {
-  font-family: var(--font-body), sans-serif;
-  font-weight: var(--weight-semibold);
-  font-size: var(--text-base);
-}
-
-.roadmap__body p {
-  margin-top: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--ink-muted);
-  max-width: 58ch;
-}
-
-@media (max-width: 40rem) {
-  .roadmap__row {
-    grid-template-columns: 3rem 1fr;
-  }
-
-  .roadmap__row .badge {
-    grid-column: 2;
-  }
 }
 
 /* Docs shell */
@@ -658,7 +687,8 @@ samp {
 }
 
 .docs-nav__title {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
   text-transform: uppercase;
@@ -790,44 +820,6 @@ samp {
   font-size: var(--text-sm);
   color: var(--ink-muted);
   max-width: 56ch;
-}
-
-/* Landing: terminal transcript. One honest artifact rather than a claim, so
-   the block is a real captured run and is never truncated with an ellipsis. */
-.transcript {
-  margin-top: var(--space-7);
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-2);
-  background: var(--bg-raised);
-  box-shadow: var(--shadow-1);
-}
-
-.transcript pre {
-  margin: 0;
-  padding: var(--space-5);
-  font-size: var(--text-xs);
-  line-height: 1.65;
-  color: var(--ink-muted);
-  white-space: pre;
-}
-
-.transcript__cmd {
-  color: var(--ink);
-  font-weight: var(--weight-semibold);
-}
-
-.transcript__refuse {
-  color: var(--accent-ink);
-  font-weight: var(--weight-semibold);
-}
-
-.transcript__caption {
-  padding: var(--space-3) var(--space-5);
-  border-top: 1px solid var(--line);
-  font-family: var(--font-mono), monospace;
-  font-size: var(--text-2xs);
-  color: var(--ink-faint);
 }
 
 /* Motion discipline */

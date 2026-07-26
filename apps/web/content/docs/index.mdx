@@ -1,9 +1,8 @@
 # Overview
 
-cupel is an open source image toolchain built around one rule: measure before you touch
-anything. It works out how much quality a source image actually has left, and it is being
-extended, milestone by milestone, into a tool that spends a page-level byte budget only where it
-buys visible fidelity and records a receipt for every decision.
+cupel is an open source image tool built around one rule: measure before you touch anything. It
+works out how much quality a picture actually has left, removes only what it can remove safely,
+and records a receipt for every decision so the numbers can be rechecked later.
 
 This documentation describes the repository as it exists today. Anything that has not shipped is
 labelled as roadmap, and lives on the [roadmap page](/docs/roadmap).
@@ -27,19 +26,24 @@ around them, not the other way round.
 - **`@cupel/codecs-node`** and **`@cupel/codecs-wasm`**: two codec adapters behind one `Encoder`
   interface, held to agreement within 1e-6 by a parity test. See
   [Architecture](/docs/architecture).
-- **This site**, whose landing page runs the real `@cupel/core` code at build time to produce
-  the numbers it shows.
+- **`@cupel/core`'s provenance layer**: what has already been done to a file, read out of its own
+  bytes. Estimated original quality, encoder fingerprint, generation count, real versus declared
+  resolution, and the headroom verdict that drives refusal.
+- **The command line**: `cupel inspect` for one file, `cupel audit` for a folder or a page,
+  `cupel write` to apply a plan (dry run unless you pass `--apply`), and `cupel verify` to
+  recheck the receipts it wrote.
+- **This site**: the landing page runs the real `@cupel/core` code, both at build time for the
+  measurement table and in your browser for the demo.
 
-What does not exist yet: provenance analysis, the auditor, the allocator, the writer, source
-recovery, receipts. The docs will grow as those land, not before.
+What does not exist yet: page-level budget allocation and source recovery. Both are built and
+tested as libraries but nothing calls them yet. The [roadmap](/docs/roadmap) is specific about
+this, and about the calibration guesses currently shipping.
 
 ## Where the name comes from
 
-A cupel is the small porous vessel used in fire assay, the reference method for determining how
-much precious metal a sample really contains. The assayer does not guess and does not average:
-the sample is measured, and the measurement is the verdict. That is the stance of this project:
-an image is a sample to be measured, not just a file to be shrunk. This aside is the only place
-the metaphor lives; everything else in these docs is arithmetic.
+A cupel is a small dish used to test what a sample of metal is really worth before anyone decides
+what to do with it. Test first, then act. That is the whole reference, and this paragraph is the
+only place it lives.
 
 ## Reading order
 

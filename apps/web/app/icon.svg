@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    The same idea as the header mark (one picture, two states) but stripped
+    down, because the fine sun and hill detail turns to mush at 16 pixels.
+    A rounded frame, split on the diagonal: original on one side, the smaller
+    version on the other.
+  -->
+  <rect width="32" height="32" rx="7" fill="#0b7d57" />
+  <path d="M26 6.5v19a1.5 1.5 0 0 1-1.5 1.5H8L24.5 5.2c.85.2 1.5.95 1.5 1.3Z" fill="#ffffff" opacity="0.28" />
+  <circle cx="11.5" cy="12" r="2.6" fill="#ffffff" opacity="0.9" />
+  <path
+    d="M5.5 24 11 16.8l4.4 5.2 3-3.2 5 5.2"
+    stroke="#ffffff"
+    stroke-width="2.1"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+    opacity="0.9"
+  />
+</svg>

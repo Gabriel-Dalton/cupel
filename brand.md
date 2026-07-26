@@ -1,34 +1,129 @@
-# BRAND.md: Cupel Voice & Messaging
+# Brand and voice
 
-## 1. The Core Philosophy
+## 1. What cupel is, in one sentence
 
-Cupel is a toolchain built on the principles of **digital sustainability**. We treat a page's byte budget as a strict, finite resource. We do not compress for the sake of compressing; we measure and allocate intelligently to prevent waste, reduce unnecessary data transfer, and safeguard visual fidelity.
+cupel makes images smaller without making them look worse, and it stops when
+there is nothing left to safely remove.
 
-## 2. Voice & Tone Rules
+That sentence is the product. Everything on this list exists to keep us from
+drifting away from it.
 
-- **Authoritative, not Academic:** Project confidence in the mathematical rigor of the tool without turning copy into a textbook. Speak directly to the developer's operational pain points (ruined images, bloated pages, wasted bandwidth).
-- **Kill the Adjectives, Keep the Verbs:** Ban generic SaaS fluff like "intelligent," "seamless," "smart," or "revolutionary." Rely on concrete action verbs: _Measure, allocate, refuse, prove, budget, safeguard._
-- **State the Default Behavior:** Lead with constraints. Always highlight what the software _won't_ do. (e.g., "Cupel refuses to re-encode a source with no quality headroom left." / "Cupel never writes anything without an explicit flag.")
+## 2. Who we are talking to
 
-## 3. The Lexicon
+Anyone who has images on a website. Not just developers, and definitely not
+just people who know what a quantization table is.
 
-- **Words to Champion:** Analyze, Measure, Preserve, Optimize, Budget, Safeguard, Prevent, Calculate, Allocate, Refuse, Headroom.
-- **Words to Ban (from top-level copy):** Bone ash, Ore, Smelting, Intelligent, Seamless, Magic.
-- **Words to Quarantine (keep strictly in technical docs):** Provenance, Radially averaged power spectrum, SSIM, CIE76 deltaE. _(Keep "Assay" quarantined as an origin story for the name, or use it sparingly as a high-level technical hook)._
+Assume the reader knows that big images make pages slow, and that squashed
+images look bad. Assume nothing else. A designer who has never opened a
+terminal should be able to read the landing page and understand what this does
+and why they would want it.
 
-## 4. Approved Messaging Angles
+The technical audience is still important, and they are won by proof rather
+than vocabulary. Show them a real measurement and they will trust us. Bury
+them in jargon and they cannot tell us apart from the other forty compression
+tools.
 
-### A. The Resource Allocation Angle (Focus: Efficiency & Sustainability)
+## 3. The name
 
-- **The Hook:** Spend your byte budget on quality, not noise.
-- **The Pitch:** Cupel is an image toolchain that treats bandwidth as a strict resource. It analyzes the surviving quality of an image to ensure you only spend bytes where they actually buy visual fidelity.
+A cupel is a small dish used to test how pure a sample of metal is before
+anyone decides what it is worth. That is a nice story about testing something
+before you act on it, and it is the reason for the name.
 
-### B. The Defiant Angle (Focus: Safety & Refusal)
+It is not the pitch. Nobody arrives at this page wanting a metallurgy lesson.
+Keep the origin story in the About or docs, one sentence at most, and never in
+the headline.
 
-- **The Hook:** Compression that actually knows when to stop.
-- **The Pitch:** Most image pipelines blindly compress files until they break. Cupel measures the headroom first. If a source file has no quality left to give, Cupel refuses to re-encode it. Zero generational decay, enforced by design.
+## 4. Voice
 
-### C. The Technical Purist Angle (Focus: Rigor & Transparency)
+**Lead with what the reader gets, then explain how.** "Your images get smaller
+and still look right" comes before anything about rate-distortion curves.
 
-- **The Hook:** Assay before you compress.
-- **The Pitch:** A page-level rate-distortion toolchain. Cupel measures the exact visual quality left in a source file, allocates your byte budget strictly where it matters, and leaves a verifiable receipt.
+**Plain words, short sentences.** Say "checks" instead of "analyzes the
+provenance of". Say "gives up" or "stops" instead of "issues a refusal". Vary
+sentence length so it reads like a person.
+
+**Be specific instead of impressive.** "Saved 51% of this photo and it still
+looks the same" beats "dramatically reduces payload". Real numbers, real file
+names, real verdicts.
+
+**Say what it will not do.** Our best feature is a limit. cupel will not
+re-squeeze a picture that has already been squeezed flat, and it will not
+overwrite a single file unless you explicitly ask. Say so early and plainly.
+
+**Show, do not claim.** Where a sentence makes a claim, put the thing that
+proves it next to the sentence. The landing page runs the real code on real
+images in the reader's browser. That is worth more than any adjective.
+
+## 5. Words
+
+**Use:** smaller, sharper, check, measure, stop, skip, keep, protect, prove,
+receipt, quality, savings, before and after.
+
+**Never in top-level copy:**
+
+- Fluff: intelligent, seamless, magic, revolutionary, effortless, powerful,
+  cutting edge, next generation, blazing fast.
+- Metallurgy: assay, bone ash, ore, smelting, crucible. The name is enough.
+- AI tells: "not just X, it's Y", leverage, unlock, elevate, harness, delve,
+  tapestry, landscape as a metaphor, journey, "in today's fast paced world".
+
+**Keep in the docs only:** provenance, quantization table, SSIM, deltaE,
+rate-distortion, convex hull, radially averaged power spectrum, headroom,
+lambda. Every one of these has a plain replacement for the landing page.
+"Headroom" becomes "quality left to spend". "Provenance" becomes "what has
+already happened to this file".
+
+## 6. Punctuation and formatting
+
+No dash characters in prose. No em dashes, no en dashes, and no hyphens used
+as connectors or asides. Use commas, periods, colons, or the words "and" and
+"but". Hyphens are allowed only where a machine needs them: code, CSS
+properties, file names, URLs.
+
+No arrow glyphs, no decorative symbols, no emoji. A button says "Try it", not
+"Try it" with an arrow bolted on.
+
+Sentence case for headings. Numbers as digits.
+
+## 7. Design principles that carry the voice
+
+**Neutral surfaces.** The background is a cool neutral grey, never a warm
+cream. A warm background lies about the colour of the images sitting on it,
+and this is a tool for judging image quality. Photo software is neutral for
+the same reason.
+
+**Two verdict colours, used consistently everywhere.** Green means cupel acted
+and saved bytes. Red means cupel stopped and protected the file. A reader
+should be able to scan any page and know the outcome from colour alone. These
+two are the only accents. Nothing else gets to be colourful.
+
+**No monospaced type.** Terminal fonts make a tool look like it is only for
+people who live in terminals, which is exactly the audience limit we are
+trying to break. Numbers line up using tabular figures in the normal
+typeface instead. Data still aligns; it just does not shout "command line".
+
+**Images are the hero.** This is a tool about pictures. Show pictures, large,
+and let people drag a slider between the before and the after.
+
+## 8. Messaging, in priority order
+
+**A. The plain benefit (default, use this first)**
+
+- Headline: Make your images smaller without making them worse.
+- Body: cupel checks how much quality a picture actually has left, then only
+  removes what it can remove safely. Most pages get noticeably lighter. Nothing
+  gets wrecked.
+
+**B. The limit (our real differentiator)**
+
+- Headline: It knows when to stop.
+- Body: Every other tool will happily squash a photo that was already squashed
+  by your CMS two years ago, and it gets worse every time. cupel measures
+  first, and when there is nothing left to take, it refuses and tells you why.
+
+**C. The proof (for the sceptical technical reader)**
+
+- Headline: Every change comes with a receipt you can check yourself.
+- Body: cupel records what it did to each file and the numbers behind it. You,
+  or anyone else, can recheck those numbers in a browser. If a receipt does not
+  match the file, it says so.
