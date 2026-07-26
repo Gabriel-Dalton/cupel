@@ -32,12 +32,21 @@ importers:
 
   apps/web:
     dependencies:
+      '@cupel/codecs-node':
+        specifier: workspace:*
+        version: link:../../packages/codecs-node
       '@cupel/codecs-wasm':
         specifier: workspace:*
         version: link:../../packages/codecs-wasm
       '@cupel/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@cupel/crawl':
+        specifier: workspace:*
+        version: link:../../packages/crawl
+      '@cupel/recover':
+        specifier: workspace:*
+        version: link:../../packages/recover
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1
@@ -72,6 +81,9 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)
 
   packages/cli:
     dependencies:
