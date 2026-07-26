@@ -50,6 +50,24 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
+  # Builds the site with the exact command the deployment uses.
+  #
+  # This job exists because a broken build used to reach the deployment before
+  # anyone here noticed: lint, typecheck, and test all pass on a tree that
+  # cannot build, since none of them run next build. When this is red, read the
+  # log here rather than digging through deployment logs.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@cupel/web...
+
   # Runs the same RawImage inputs through the sharp adapter and the WASM
   # adapter and asserts the resulting SSIM values agree. If these two ever
   # drift, the browser playground's credibility is gone.
