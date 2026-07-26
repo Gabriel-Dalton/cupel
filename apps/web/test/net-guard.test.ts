@@ -74,7 +74,8 @@ function refusalOf(result: GuardedFetchResult): GuardedFetchRefusal {
 }
 
 function successOf(result: GuardedFetchResult): GuardedFetchSuccess {
-  if (!result.ok) throw new Error(`expected success, got refusal: ${result.code} (${result.reason})`)
+  if (!result.ok)
+    throw new Error(`expected success, got refusal: ${result.code} (${result.reason})`)
   return result
 }
 
@@ -199,7 +200,11 @@ describe('guardedFetch: DNS validation', () => {
   it('refuses a name that resolves to a private address', async () => {
     const resolve: AddressResolver = () => Promise.resolve(['10.0.0.5'])
     const result = refusalOf(
-      await guardedFetch('https://internal.example/x', { fetcher: neverFetch, resolve, maxBytes: CAP }),
+      await guardedFetch('https://internal.example/x', {
+        fetcher: neverFetch,
+        resolve,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('private-address')
     expect(result.reason).toMatch(/internal\.example/)
@@ -208,7 +213,11 @@ describe('guardedFetch: DNS validation', () => {
   it('refuses when ANY resolved address is private (rebinding window)', async () => {
     const resolve: AddressResolver = () => Promise.resolve(['93.184.216.34', '10.0.0.5'])
     const result = refusalOf(
-      await guardedFetch('https://flappy.example/x', { fetcher: neverFetch, resolve, maxBytes: CAP }),
+      await guardedFetch('https://flappy.example/x', {
+        fetcher: neverFetch,
+        resolve,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('private-address')
   })
@@ -216,7 +225,11 @@ describe('guardedFetch: DNS validation', () => {
   it('refuses when the name resolves to IPv6 loopback', async () => {
     const resolve: AddressResolver = () => Promise.resolve(['::1'])
     const result = refusalOf(
-      await guardedFetch('https://sneaky.example/x', { fetcher: neverFetch, resolve, maxBytes: CAP }),
+      await guardedFetch('https://sneaky.example/x', {
+        fetcher: neverFetch,
+        resolve,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('private-address')
   })
@@ -224,7 +237,11 @@ describe('guardedFetch: DNS validation', () => {
   it('reports a resolver failure as dns-error', async () => {
     const resolve: AddressResolver = () => Promise.reject(new Error('ENOTFOUND'))
     const result = refusalOf(
-      await guardedFetch('https://nowhere.example/x', { fetcher: neverFetch, resolve, maxBytes: CAP }),
+      await guardedFetch('https://nowhere.example/x', {
+        fetcher: neverFetch,
+        resolve,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('dns-error')
   })
@@ -232,7 +249,11 @@ describe('guardedFetch: DNS validation', () => {
   it('reports an empty resolution as dns-error', async () => {
     const resolve: AddressResolver = () => Promise.resolve([])
     const result = refusalOf(
-      await guardedFetch('https://empty.example/x', { fetcher: neverFetch, resolve, maxBytes: CAP }),
+      await guardedFetch('https://empty.example/x', {
+        fetcher: neverFetch,
+        resolve,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('dns-error')
   })
@@ -272,7 +293,11 @@ describe('guardedFetch: redirects re-validate every hop', () => {
       log,
     )
     const result = refusalOf(
-      await guardedFetch('https://public.example/a', { fetcher, resolve: publicDns, maxBytes: CAP }),
+      await guardedFetch('https://public.example/a', {
+        fetcher,
+        resolve: publicDns,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('private-address')
     expect(log).toHaveLength(2)
@@ -304,7 +329,11 @@ describe('guardedFetch: redirects re-validate every hop', () => {
         fakeResponse({ body: 'moved bytes', headers: { 'content-type': 'image/png' } }),
     })
     const result = successOf(
-      await guardedFetch('https://public.example/old', { fetcher, resolve: publicDns, maxBytes: CAP }),
+      await guardedFetch('https://public.example/old', {
+        fetcher,
+        resolve: publicDns,
+        maxBytes: CAP,
+      }),
     )
     expect(result.finalUrl).toBe('https://public.example/new')
     expect(result.hops).toBe(1)
@@ -316,7 +345,11 @@ describe('guardedFetch: redirects re-validate every hop', () => {
       'https://public.example/a': () => fakeResponse({ status: 302 }),
     })
     const result = refusalOf(
-      await guardedFetch('https://public.example/a', { fetcher, resolve: publicDns, maxBytes: CAP }),
+      await guardedFetch('https://public.example/a', {
+        fetcher,
+        resolve: publicDns,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('bad-redirect')
   })
@@ -327,7 +360,11 @@ describe('guardedFetch: redirects re-validate every hop', () => {
         fakeResponse({ status: 302, headers: { location: 'file:///etc/passwd' } }),
     })
     const result = refusalOf(
-      await guardedFetch('https://public.example/a', { fetcher, resolve: publicDns, maxBytes: CAP }),
+      await guardedFetch('https://public.example/a', {
+        fetcher,
+        resolve: publicDns,
+        maxBytes: CAP,
+      }),
     )
     expect(result.code).toBe('bad-scheme')
   })

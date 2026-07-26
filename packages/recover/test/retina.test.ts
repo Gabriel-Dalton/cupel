@@ -42,10 +42,7 @@ describe('retinaRecoverer.propose', () => {
 
   it('works for webp', async () => {
     const candidates = await retinaRecoverer.propose(asset(`${IMG}/banner.webp`))
-    expect(candidates.map((c) => c.url)).toEqual([
-      `${IMG}/banner@2x.webp`,
-      `${IMG}/banner@3x.webp`,
-    ])
+    expect(candidates.map((c) => c.url)).toEqual([`${IMG}/banner@2x.webp`, `${IMG}/banner@3x.webp`])
   })
 
   it('preserves the query string', async () => {

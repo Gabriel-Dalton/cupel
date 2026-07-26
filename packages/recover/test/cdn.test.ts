@@ -75,12 +75,16 @@ describe('cdnRecoverer.propose', () => {
   })
 
   it('keeps non-transform query params such as a version', async () => {
-    const candidates = await cdnRecoverer.propose(asset('https://cdn.acme.com/a.jpg?w=400&v=abc123'))
+    const candidates = await cdnRecoverer.propose(
+      asset('https://cdn.acme.com/a.jpg?w=400&v=abc123'),
+    )
     expect(candidates.map((c) => c.url)).toEqual(['https://cdn.acme.com/a.jpg?v=abc123'])
   })
 
   it('drops the query entirely when every param is a transform', async () => {
-    const candidates = await cdnRecoverer.propose(asset('https://cdn.acme.com/b.png?q=80&fm=webp&dpr=2'))
+    const candidates = await cdnRecoverer.propose(
+      asset('https://cdn.acme.com/b.png?q=80&fm=webp&dpr=2'),
+    )
     expect(candidates.map((c) => c.url)).toEqual(['https://cdn.acme.com/b.png'])
   })
 

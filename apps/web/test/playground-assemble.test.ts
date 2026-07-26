@@ -9,7 +9,12 @@ import {
   pointKey,
   toCandidatePoint,
 } from '../lib/playground/assemble'
-import { SWEEP_FORMATS, buildSweepPlan, type FormatCapabilities, type SweepFormat } from '../lib/playground/plan'
+import {
+  SWEEP_FORMATS,
+  buildSweepPlan,
+  type FormatCapabilities,
+  type SweepFormat,
+} from '../lib/playground/plan'
 
 /**
  * Curve assembly: turning measured encodes into CandidatePoints, pruning to

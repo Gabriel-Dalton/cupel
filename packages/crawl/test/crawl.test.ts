@@ -65,10 +65,7 @@ describe('crawlPage', () => {
 
   it('returns blockedByRobots with no assets, and never fetches the page', async () => {
     const log: FetchLogEntry[] = []
-    const fetcher = fakeFetcher(
-      { [ROBOTS]: 'User-agent: *\nDisallow: /', [PAGE]: HTML },
-      log,
-    )
+    const fetcher = fakeFetcher({ [ROBOTS]: 'User-agent: *\nDisallow: /', [PAGE]: HTML }, log)
     const crawl = await crawlPage(PAGE, { fetcher, now: NOW })
 
     expect(crawl.blockedByRobots).toBe(true)

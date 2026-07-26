@@ -70,8 +70,4 @@ export type RefusalMessage = {
 }
 
 export type SweepResponse =
-  | DecodedMessage
-  | PointMessage
-  | StepErrorMessage
-  | DoneMessage
-  | RefusalMessage
+  DecodedMessage | PointMessage | StepErrorMessage | DoneMessage | RefusalMessage

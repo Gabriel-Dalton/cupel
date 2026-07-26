@@ -17,11 +17,7 @@ import {
   type GuardFetcher,
   type GuardRefusalCode,
 } from '../../../lib/net/guard'
-import {
-  clientIpFrom,
-  createRateLimiter,
-  type RateLimitWindow,
-} from '../../../lib/net/ratelimit'
+import { clientIpFrom, createRateLimiter, type RateLimitWindow } from '../../../lib/net/ratelimit'
 
 /**
  * The single-image metadata probe (BRIEF sections 7 and 9.1): fetch the
@@ -116,7 +112,10 @@ export function sniffContainer(bytes: Uint8Array): SniffedContainer | null {
   }
   if (matchesAscii(bytes, 0, 'GIF87a') || matchesAscii(bytes, 0, 'GIF89a')) return 'gif'
   if (matchesAscii(bytes, 0, 'RIFF') && matchesAscii(bytes, 8, 'WEBP')) return 'webp'
-  if (matchesAscii(bytes, 4, 'ftyp') && (matchesAscii(bytes, 8, 'avif') || matchesAscii(bytes, 8, 'avis'))) {
+  if (
+    matchesAscii(bytes, 4, 'ftyp') &&
+    (matchesAscii(bytes, 8, 'avif') || matchesAscii(bytes, 8, 'avis'))
+  ) {
     return 'avif'
   }
   return null
@@ -149,7 +148,9 @@ function buildJpegReport(bytes: Uint8Array): { jpeg: ProbeJpegReport | null; not
   if (info === null) {
     return {
       jpeg: null,
-      notes: ['jpeg magic bytes present but the header did not parse; no quality evidence recovered'],
+      notes: [
+        'jpeg magic bytes present but the header did not parse; no quality evidence recovered',
+      ],
     }
   }
 
@@ -230,7 +231,12 @@ function json(payload: unknown, status: number, headers: Record<string, string>)
   })
 }
 
-function errorResponse(status: number, code: string, message: string, headers: Record<string, string> = {}): Response {
+function errorResponse(
+  status: number,
+  code: string,
+  message: string,
+  headers: Record<string, string> = {},
+): Response {
   const payload: ProbeError = { error: { code, message } }
   return json(payload, status, { 'cache-control': 'no-store', ...headers })
 }
@@ -280,9 +286,14 @@ export function createProbeHandler(
       const decision = limiter.check(clientIpFrom(request.headers))
       if (!decision.allowed) {
         const seconds = Math.max(1, Math.ceil(decision.retryAfterMs / 1000))
-        return errorResponse(429, 'rate-limited', `rate limit exceeded; retry in about ${seconds}s`, {
-          'retry-after': String(seconds),
-        })
+        return errorResponse(
+          429,
+          'rate-limited',
+          `rate limit exceeded; retry in about ${seconds}s`,
+          {
+            'retry-after': String(seconds),
+          },
+        )
       }
 
       try {

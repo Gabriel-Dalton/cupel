@@ -113,9 +113,7 @@ describe('lowerConvexHull', () => {
         const fromAll = best(points)
         const fromHull = best(hull)
         expect(fromHull.bytes, `trial ${trial}, mu ${mu}: bytes`).toBe(fromAll.bytes)
-        expect(fromHull.distortion, `trial ${trial}, mu ${mu}: distortion`).toBe(
-          fromAll.distortion,
-        )
+        expect(fromHull.distortion, `trial ${trial}, mu ${mu}: distortion`).toBe(fromAll.distortion)
       }
     }
   })

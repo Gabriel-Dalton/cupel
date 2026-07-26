@@ -233,8 +233,11 @@ describe('verifyLedger against real wasm codecs', () => {
         await toVerifyFile('badge.png', honest.sourceBytes),
       ]
       const seen: Array<[number, number]> = []
-      const { reports, summary } = await verifyLedger(parseLedger(text), files, decode, (done, total) =>
-        seen.push([done, total]),
+      const { reports, summary } = await verifyLedger(
+        parseLedger(text),
+        files,
+        decode,
+        (done, total) => seen.push([done, total]),
       )
       expect(summary).toMatchObject({ entries: 3, pass: 2, fail: 0, unverifiable: 1 })
       expect(reports.map((r) => r.classification)).toEqual([

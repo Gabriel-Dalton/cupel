@@ -142,10 +142,7 @@ describe('allocate: budget mode', () => {
 
   it('totals are the sum of chosen bytes and weighted distortion', () => {
     const res = allocate(
-      [
-        img('a', 2, [pt(100, 0.5), pt(200, 0.25)]),
-        img('b', 3, [pt(100, 0.5), pt(300, 0.125)]),
-      ],
+      [img('a', 2, [pt(100, 0.5), pt(200, 0.25)]), img('b', 3, [pt(100, 0.5), pt(300, 0.125)])],
       { budgetBytes: 500 },
     )
     expect(res.totalBytes).toBe(200 + 300)
@@ -163,11 +160,7 @@ describe('allocate: floors', () => {
     // the 400 byte point in its shadow. Filtering first must resurface the
     // 400 byte point; filtering the pre-built hull instead would leave only
     // keep-original. Selecting 400 proves the filter ran before the hull.
-    const points = [
-      pt(100, 0.12, 0.9),
-      pt(400, 0.2, 0.98),
-      pt(1000, 0, 1, 'keep-original'),
-    ]
+    const points = [pt(100, 0.12, 0.9), pt(400, 0.2, 0.98), pt(1000, 0, 1, 'keep-original')]
     const floors = { globalMinSsim: 0.97, aboveFoldMinSsim: 0.99 }
     const withFloors = allocate([img('a', 1, points)], { lambda: 0.001, floors })
     expect(withFloors.choices.get('a')?.bytes).toBe(400)
@@ -232,9 +225,7 @@ describe('allocate: input validation and determinism', () => {
     expect(() => allocate(images, { budgetBytes: -5 })).toThrow(/budget/i)
     expect(() => allocate(images, { budgetBytes: Number.NaN })).toThrow(/budget/i)
     expect(() => allocate([img('a', -1, [pt(100, 0.5)])], { lambda: 0 })).toThrow(/weight/i)
-    expect(() => allocate([img('a', Number.NaN, [pt(100, 0.5)])], { lambda: 0 })).toThrow(
-      /weight/i,
-    )
+    expect(() => allocate([img('a', Number.NaN, [pt(100, 0.5)])], { lambda: 0 })).toThrow(/weight/i)
   })
 
   it('rejects duplicate image ids', () => {

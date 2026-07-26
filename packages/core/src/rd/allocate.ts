@@ -160,7 +160,9 @@ export function allocate(
     throw new Error(`allocate: lambda must be finite and non-negative, got ${opts.lambda}`)
   }
   if (hasBudget && (!Number.isFinite(opts.budgetBytes) || (opts.budgetBytes as number) < 0)) {
-    throw new Error(`allocate: budgetBytes must be finite and non-negative, got ${opts.budgetBytes}`)
+    throw new Error(
+      `allocate: budgetBytes must be finite and non-negative, got ${opts.budgetBytes}`,
+    )
   }
 
   const prepared: PreparedImage[] = []
@@ -188,7 +190,12 @@ export function allocate(
       )
     }
     const hull = lowerConvexHull(filtered)
-    prepared.push({ id: image.id, weight: image.weight, hull, rates: prepareRates(image.weight, hull) })
+    prepared.push({
+      id: image.id,
+      weight: image.weight,
+      hull,
+      rates: prepareRates(image.weight, hull),
+    })
   }
 
   if (hasLambda) {

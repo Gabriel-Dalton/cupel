@@ -62,7 +62,9 @@ describe('wordpressRecoverer.propose', () => {
   })
 
   it('handles a stacked -scaled-WxH suffix, bare original first', async () => {
-    const candidates = await wordpressRecoverer.propose(asset(`${UPLOADS}/team-scaled-1024x683.jpg`))
+    const candidates = await wordpressRecoverer.propose(
+      asset(`${UPLOADS}/team-scaled-1024x683.jpg`),
+    )
     expect(candidates.map((c) => c.url)).toEqual([
       `${UPLOADS}/team.jpg`,
       `${UPLOADS}/team-scaled.jpg`,

@@ -67,7 +67,10 @@ describe('estimateFold: LCP guess', () => {
   })
 
   it('ignores assets without a full width and height estimate', () => {
-    const widthOnly = { display: { width: 1200, estimated: true } satisfies DisplayEstimate, lazy: false }
+    const widthOnly = {
+      display: { width: 1200, estimated: true } satisfies DisplayEstimate,
+      lazy: false,
+    }
     const result = estimateFold([widthOnly, sized(10, 10)], VP)
     expect(result.lcpIndex).toBe(1)
   })

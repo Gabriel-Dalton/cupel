@@ -72,9 +72,11 @@ describe('parseLedger', () => {
   })
 
   it('skips malformed JSON with a report and keeps parsing later lines', () => {
-    const text = [JSON.stringify(makeEntry()), '{ this is not json', JSON.stringify(keptEntry())].join(
-      '\n',
-    )
+    const text = [
+      JSON.stringify(makeEntry()),
+      '{ this is not json',
+      JSON.stringify(keptEntry()),
+    ].join('\n')
     const parsed = parseLedger(text)
     expect(parsed.entries).toHaveLength(2)
     expect(parsed.skipped).toHaveLength(1)

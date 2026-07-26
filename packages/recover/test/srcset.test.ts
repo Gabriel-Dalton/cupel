@@ -42,10 +42,7 @@ describe('srcsetRecoverer.propose', () => {
       ],
     })
     const candidates = await srcsetRecoverer.propose(a)
-    expect(candidates.map((c) => c.url)).toEqual([
-      `${IMG}/photo-1600.jpg`,
-      `${IMG}/photo-1200.jpg`,
-    ])
+    expect(candidates.map((c) => c.url)).toEqual([`${IMG}/photo-1600.jpg`, `${IMG}/photo-1200.jpg`])
     expect(candidates[0]?.via).toBe('srcset')
     expect(candidates[0]?.rationale).toContain('1600w')
   })

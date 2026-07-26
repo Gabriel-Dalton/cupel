@@ -298,17 +298,11 @@ function EntryCard({ report }: { report: EntryReport }) {
         ? styles.verdictFail
         : ''
   const entryClass =
-    report.verdict === 'pass'
-      ? styles.entryPass
-      : report.verdict === 'fail'
-        ? styles.entryFail
-        : ''
+    report.verdict === 'pass' ? styles.entryPass : report.verdict === 'fail' ? styles.entryFail : ''
   return (
     <article className={`${styles.entry} ${entryClass}`}>
       <header className={styles.entryHeader}>
-        <span className={`${styles.verdict} ${verdictClass}`}>
-          {VERDICT_LABEL[report.verdict]}
-        </span>
+        <span className={`${styles.verdict} ${verdictClass}`}>{VERDICT_LABEL[report.verdict]}</span>
         <h3 className={styles.asset}>{report.entry.asset}</h3>
         <span className={styles.meta}>
           {report.entry.decision} · line {report.line} · {classificationLabel(report)}

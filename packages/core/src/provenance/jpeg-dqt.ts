@@ -137,7 +137,11 @@ const M_TEM = 0x01
  * jpeg_add_quant_table, C integer division semantics included. limit is 255
  * for baseline 8-bit tables and 32767 for 16-bit (Pq=1) tables.
  */
-export function scaleQuantTable(base: ArrayLike<number>, quality: number, limit = 255): Uint16Array {
+export function scaleQuantTable(
+  base: ArrayLike<number>,
+  quality: number,
+  limit = 255,
+): Uint16Array {
   const q = Math.min(100, Math.max(1, Math.round(quality)))
   const s = q < 50 ? Math.floor(5000 / q) : 200 - 2 * q
   const out = new Uint16Array(64)
@@ -248,7 +252,7 @@ function parseDqtPayload(
     if (p + (wide ? 128 : 64) > end) return false
     const values = new Uint16Array(64)
     for (let k = 0; k < 64; k++) {
-      const v = wide ? (((bytes[p] ?? 0) << 8) | (bytes[p + 1] ?? 0)) : (bytes[p] ?? 0)
+      const v = wide ? ((bytes[p] ?? 0) << 8) | (bytes[p + 1] ?? 0) : (bytes[p] ?? 0)
       p += wide ? 2 : 1
       values[JPEG_ZIGZAG[k] ?? 0] = v
     }

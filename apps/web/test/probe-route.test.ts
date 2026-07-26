@@ -38,10 +38,32 @@ function zigzagged(table: Uint16Array): number[] {
 function jpegBytes(quality: number, width = 320, height = 200): Uint8Array {
   const luma = scaleQuantTable(ANNEX_K_LUMA, quality)
   const chroma = scaleQuantTable(ANNEX_K_CHROMA, quality)
-  const dqt = [0xff, 0xdb, ...u16be(2 + 2 * 65), 0x00, ...zigzagged(luma), 0x01, ...zigzagged(chroma)]
+  const dqt = [
+    0xff,
+    0xdb,
+    ...u16be(2 + 2 * 65),
+    0x00,
+    ...zigzagged(luma),
+    0x01,
+    ...zigzagged(chroma),
+  ]
   const sof = [
-    0xff, 0xc0, ...u16be(8 + 3 * 3), 8, ...u16be(height), ...u16be(width),
-    3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1,
+    0xff,
+    0xc0,
+    ...u16be(8 + 3 * 3),
+    8,
+    ...u16be(height),
+    ...u16be(width),
+    3,
+    1,
+    0x22,
+    0,
+    2,
+    0x11,
+    1,
+    3,
+    0x11,
+    1,
   ]
   const sos = [0xff, 0xda, ...u16be(12), 3, 1, 0x00, 2, 0x11, 3, 0x11, 0, 63, 0]
   return Uint8Array.from([0xff, 0xd8, ...dqt, ...sof, ...sos, 0x12, 0x34])
@@ -51,12 +73,18 @@ const PNG_BYTES = Uint8Array.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52,
 ])
 const GIF_BYTES = Uint8Array.from([...'GIF89a'].map((c) => c.charCodeAt(0)))
-const WEBP_BYTES = Uint8Array.from(
-  [...'RIFF\x10\x00\x00\x00WEBPVP8 '].map((c) => c.charCodeAt(0)),
-)
-const AVIF_BYTES = Uint8Array.from(
-  [0, 0, 0, 0x20, ...[...'ftypavif'].map((c) => c.charCodeAt(0)), 0, 0, 0, 0],
-)
+const WEBP_BYTES = Uint8Array.from([...'RIFF\x10\x00\x00\x00WEBPVP8 '].map((c) => c.charCodeAt(0)))
+const AVIF_BYTES = Uint8Array.from([
+  0,
+  0,
+  0,
+  0x20,
+  ...[...'ftypavif'].map((c) => c.charCodeAt(0)),
+  0,
+  0,
+  0,
+  0,
+])
 
 // --- fetch fakes ---
 
@@ -157,7 +185,10 @@ describe('probe route: jpeg metadata', () => {
   function jpegHandler(log: FetchLogEntry[] = []) {
     return createProbeHandler({
       fetcher: routeFetcher(
-        { [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }) },
+        {
+          [target]: () =>
+            fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        },
         log,
       ),
       resolve: publicDns,
@@ -245,7 +276,10 @@ describe('probe route: SSRF fails closed end to end', () => {
     const log: FetchLogEntry[] = []
     const handler = createProbeHandler({
       fetcher: routeFetcher(
-        { [target]: () => fakeResponse({ status: 302, headers: { location: 'http://127.0.0.1/steal' } }) },
+        {
+          [target]: () =>
+            fakeResponse({ status: 302, headers: { location: 'http://127.0.0.1/steal' } }),
+        },
         log,
       ),
       resolve: publicDns,
@@ -363,7 +397,10 @@ describe('probe route: result cache', () => {
     const log: FetchLogEntry[] = []
     const handler = createProbeHandler({
       fetcher: routeFetcher(
-        { [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }) },
+        {
+          [target]: () =>
+            fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        },
         log,
       ),
       resolve: publicDns,
@@ -382,7 +419,10 @@ describe('probe route: result cache', () => {
     const log: FetchLogEntry[] = []
     const handler = createProbeHandler({
       fetcher: routeFetcher(
-        { [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }) },
+        {
+          [target]: () =>
+            fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        },
         log,
       ),
       resolve: publicDns,
@@ -399,7 +439,10 @@ describe('probe route: result cache', () => {
     const log: FetchLogEntry[] = []
     const handler = createProbeHandler({
       fetcher: routeFetcher(
-        { [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }) },
+        {
+          [target]: () =>
+            fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        },
         log,
       ),
       resolve: publicDns,
@@ -419,7 +462,8 @@ describe('probe route: rate limiting', () => {
     let t = 0
     const handler = createProbeHandler({
       fetcher: routeFetcher({
-        [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        [target]: () =>
+          fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
       }),
       resolve: publicDns,
       now: () => t,
@@ -443,7 +487,8 @@ describe('probe route: rate limiting', () => {
     const target = 'https://img.example/photo.jpg'
     const handler = createProbeHandler({
       fetcher: routeFetcher({
-        [target]: () => fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
+        [target]: () =>
+          fakeResponse({ body: jpegBytes(85), headers: { 'content-type': 'image/jpeg' } }),
       }),
       resolve: publicDns,
       rateWindows: [{ limit: 1, windowMs: 60_000 }],

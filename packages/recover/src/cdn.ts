@@ -1,11 +1,6 @@
 import type { DiscoveredAsset } from '@cupel/core'
 import type { SourceCandidate, SourceRecoverer } from './types.js'
-import {
-  hasImageExtension,
-  parseQueryPairs,
-  splitLastSegment,
-  splitUrl,
-} from './internal/url.js'
+import { hasImageExtension, parseQueryPairs, splitLastSegment, splitUrl } from './internal/url.js'
 
 /**
  * Generic image CDN transforms. Two independent mechanisms:

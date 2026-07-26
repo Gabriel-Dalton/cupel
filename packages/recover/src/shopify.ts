@@ -41,7 +41,9 @@ function isShopifyCdn(asset: DiscoveredAsset, path: string): boolean {
   return path.includes('/cdn/shop/')
 }
 
-function strippedStem(asset: DiscoveredAsset): { stem: string; stripped: string; ext: string; dir: string } | null {
+function strippedStem(
+  asset: DiscoveredAsset,
+): { stem: string; stripped: string; ext: string; dir: string } | null {
   const { path } = splitUrl(asset.url)
   if (!isShopifyCdn(asset, path)) return null
   const { dir, name } = splitLastSegment(path)

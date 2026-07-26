@@ -108,8 +108,20 @@ export function RdChart({
         ))}
 
         {/* Axes */}
-        <line className="pg-chart__axis" x1={plot.left} y1={plot.top} x2={plot.left} y2={plot.bottom} />
-        <line className="pg-chart__axis" x1={plot.left} y1={plot.bottom} x2={plot.right} y2={plot.bottom} />
+        <line
+          className="pg-chart__axis"
+          x1={plot.left}
+          y1={plot.top}
+          x2={plot.left}
+          y2={plot.bottom}
+        />
+        <line
+          className="pg-chart__axis"
+          x1={plot.left}
+          y1={plot.bottom}
+          x2={plot.right}
+          y2={plot.bottom}
+        />
 
         {/* Tick labels */}
         {geometry.xTicks.map((tick) => (
@@ -182,9 +194,7 @@ export function RdChart({
             {/* A generous invisible hit area so 3.5px dots are clickable. */}
             <circle className="pg-chart__hit" cx={p.x} cy={p.y} r={11} />
             <circle className="pg-chart__dot" cx={p.x} cy={p.y} r={p.onHull ? 4.5 : 3} />
-            {p.key === selectedKey && (
-              <circle className="pg-chart__ring" cx={p.x} cy={p.y} r={9} />
-            )}
+            {p.key === selectedKey && <circle className="pg-chart__ring" cx={p.x} cy={p.y} r={9} />}
           </g>
         ))}
       </svg>

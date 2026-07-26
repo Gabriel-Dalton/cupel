@@ -9,10 +9,7 @@ import { describe, expect, it } from 'vitest'
 
 const WEB_ROOT = fileURLToPath(new URL('..', import.meta.url))
 
-const SURFACES = [
-  join(WEB_ROOT, 'app', 'verify'),
-  join(WEB_ROOT, 'lib', 'verify'),
-]
+const SURFACES = [join(WEB_ROOT, 'app', 'verify'), join(WEB_ROOT, 'lib', 'verify')]
 
 // From brand.md section 3, "Words to Ban (from top-level copy)".
 const BANNED = [

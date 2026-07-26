@@ -176,8 +176,7 @@ describe('parseHtml: robustness', () => {
   })
 
   it('assigns increasing document order indexes across asset kinds', () => {
-    const html =
-      '<img src="a.jpg"><div style="background-image:url(b.jpg)"></div><img src="c.jpg">'
+    const html = '<img src="a.jpg"><div style="background-image:url(b.jpg)"></div><img src="c.jpg">'
     const found = parseHtml(html, PAGE)
     expect(found.map((f) => f.documentIndex)).toEqual([0, 1, 2])
     expect(found.map((f) => f.kind)).toEqual(['img', 'background', 'img'])

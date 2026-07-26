@@ -335,7 +335,10 @@ describe('analyzeProvenance', () => {
   })
 
   it('an upscaled png is flagged with its effective resolution', () => {
-    const record = analyzeProvenance({ container: 'png', image: upscale2x(noiseImage(256, 192, 3)) })
+    const record = analyzeProvenance({
+      container: 'png',
+      image: upscale2x(noiseImage(256, 192, 3)),
+    })
     expect(record.declaredResolution).toEqual({ w: 512, h: 384 })
     expect(record.upscaled).toBe(true)
     expect(record.effectiveResolution).not.toBeNull()

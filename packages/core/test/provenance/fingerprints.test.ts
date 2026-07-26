@@ -34,10 +34,7 @@ function tableOf(values: ArrayLike<number>, id = 0, precision: 8 | 16 = 8): Jpeg
   return { id, precision, values: Uint16Array.from(values as number[]) }
 }
 
-function selected(
-  luma: ArrayLike<number>,
-  chroma: ArrayLike<number> | null,
-): SelectedQuantTables {
+function selected(luma: ArrayLike<number>, chroma: ArrayLike<number> | null): SelectedQuantTables {
   return { luma: tableOf(luma, 0), chroma: chroma ? tableOf(chroma, 1) : null }
 }
 
@@ -61,10 +58,7 @@ describe('identifyEncoder', () => {
   it('identifies the mozjpeg ImageMagick table pair', () => {
     for (const q of [65, 80]) {
       const match = identifyEncoder(
-        selected(
-          scaleQuantTable(TEST_MOZJPEG_TABLE, q),
-          scaleQuantTable(TEST_MOZJPEG_TABLE, q),
-        ),
+        selected(scaleQuantTable(TEST_MOZJPEG_TABLE, q), scaleQuantTable(TEST_MOZJPEG_TABLE, q)),
       )
       expect(match?.name, `quality ${q}`).toBe('mozjpeg')
       expect(match?.quality, `quality ${q}`).toBe(q)
@@ -83,9 +77,7 @@ describe('identifyEncoder', () => {
   })
 
   it('a chroma table that does not match defeats a matching luma table', () => {
-    const match = identifyEncoder(
-      selected(scaleQuantTable(ANNEX_K_LUMA, 75), Array(64).fill(13)),
-    )
+    const match = identifyEncoder(selected(scaleQuantTable(ANNEX_K_LUMA, 75), Array(64).fill(13)))
     expect(match).toBeNull()
   })
 

@@ -37,9 +37,8 @@ export default function VerifyPage() {
           <div className="defaults__rule">
             <h2>Refuses to re-encode</h2>
             <p>
-              Verification only decodes and measures, so encoder differences between machines
-              cannot blur the verdict. Byte-for-byte reproduction is not required, and not
-              attempted.
+              Verification only decodes and measures, so encoder differences between machines cannot
+              blur the verdict. Byte-for-byte reproduction is not required, and not attempted.
             </p>
           </div>
           <div className="defaults__rule">

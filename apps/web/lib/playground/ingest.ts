@@ -56,7 +56,8 @@ export function sniffContainer(bytes: Uint8Array): SniffedContainer | null {
     return 'webp'
   }
   if (bytes.length >= 12 && asciiAt(bytes, 4, 'ftyp')) {
-    const boxSize = ((bytes[0] ?? 0) << 24) | ((bytes[1] ?? 0) << 16) | ((bytes[2] ?? 0) << 8) | (bytes[3] ?? 0)
+    const boxSize =
+      ((bytes[0] ?? 0) << 24) | ((bytes[1] ?? 0) << 16) | ((bytes[2] ?? 0) << 8) | (bytes[3] ?? 0)
     const end = Math.min(boxSize > 0 ? boxSize : bytes.length, bytes.length)
     // Major brand at 8, compatible brands from 16, four bytes each.
     if (asciiAt(bytes, 8, 'avif') || asciiAt(bytes, 8, 'avis')) return 'avif'

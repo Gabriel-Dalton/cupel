@@ -170,9 +170,7 @@ describe('parseJpeg marker walk', () => {
     // is exactly what 16-bit tables exist for.
     const values = testScale(TEST_LUMA, 5, 32767)
     expect(Math.max(...values)).toBeGreaterThan(255)
-    const info = parseJpeg(
-      jpegBytes(dqtSegment([{ id: 0, precision: 16, values }]), sosSegment()),
-    )
+    const info = parseJpeg(jpegBytes(dqtSegment([{ id: 0, precision: 16, values }]), sosSegment()))
     expect(info?.tables[0]?.precision).toBe(16)
     expect(Array.from(info?.tables[0]?.values ?? [])).toEqual(values)
   })
@@ -202,9 +200,7 @@ describe('parseJpeg marker walk', () => {
   })
 
   it('flags SOF2 as progressive', () => {
-    const info = parseJpeg(
-      jpegBytes(sofSegment(0xc2, 32, 32, THREE_COMPONENTS_420), sosSegment()),
-    )
+    const info = parseJpeg(jpegBytes(sofSegment(0xc2, 32, 32, THREE_COMPONENTS_420), sosSegment()))
     expect(info?.progressive).toBe(true)
   })
 
@@ -243,7 +239,12 @@ describe('parseJpeg marker walk', () => {
     const app0 = seg(0xe0, [0x4a, 0x46, 0x49, 0x46, 0x00, 1, 2, 0, 0, 1, 0, 1, 0, 0])
     const comment = seg(0xfe, [0x68, 0x69])
     const info = parseJpeg(
-      jpegBytes(app0, comment, dqtSegment([{ id: 0, values: testScale(TEST_LUMA, 85) }]), sosSegment()),
+      jpegBytes(
+        app0,
+        comment,
+        dqtSegment([{ id: 0, values: testScale(TEST_LUMA, 85) }]),
+        sosSegment(),
+      ),
     )
     expect(info?.tables).toHaveLength(1)
     expect(info?.truncated).toBe(false)
@@ -251,7 +252,11 @@ describe('parseJpeg marker walk', () => {
 
   it('tolerates 0xFF fill bytes before a marker', () => {
     const info = parseJpeg(
-      jpegBytes([0xff, 0xff, 0xff], dqtSegment([{ id: 0, values: testScale(TEST_LUMA, 85) }]), sosSegment()),
+      jpegBytes(
+        [0xff, 0xff, 0xff],
+        dqtSegment([{ id: 0, values: testScale(TEST_LUMA, 85) }]),
+        sosSegment(),
+      ),
     )
     expect(info?.tables).toHaveLength(1)
   })
@@ -379,10 +384,10 @@ describe('estimateJpegQuality', () => {
     // default, the estimator must pick the family that actually fits.
     const doubled = TEST_LUMA.map((v) => v * 2)
     const family = { name: 'vendor-x', luma: doubled, chroma: TEST_CHROMA }
-    const estimate = estimateJpegQuality(selected(testScale(doubled, 70), testScale(TEST_CHROMA, 70)), [
-      LIBJPEG_FAMILY,
-      family,
-    ])
+    const estimate = estimateJpegQuality(
+      selected(testScale(doubled, 70), testScale(TEST_CHROMA, 70)),
+      [LIBJPEG_FAMILY, family],
+    )
     expect(estimate?.family).toBe('vendor-x')
     expect(estimate?.quality).toBe(70)
     expect(estimate?.exact).toBe(true)

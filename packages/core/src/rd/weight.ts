@@ -31,10 +31,7 @@ const VIEWPORT_FLOOR = 0.3
  * zero or negative exponents would invert the area ordering, and exponents
  * above 1 would make the model superlinear, both nonsensical here.
  */
-export function visualWeight(
-  inputs: WeightInputs,
-  alpha: number = DEFAULT_AREA_EXPONENT,
-): number {
+export function visualWeight(inputs: WeightInputs, alpha: number = DEFAULT_AREA_EXPONENT): number {
   const { displayAreaCssPx, viewportFactor = 1, roleFactor = 1 } = inputs
   if (!Number.isFinite(displayAreaCssPx) || displayAreaCssPx < 0) {
     throw new Error(

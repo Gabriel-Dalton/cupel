@@ -18,10 +18,7 @@ describe('visualWeight', () => {
 
   it('defaults alpha to 0.6 and accepts an override', () => {
     expect(DEFAULT_AREA_EXPONENT).toBe(0.6)
-    expect(visualWeight({ displayAreaCssPx: 512 * 384 }, 0.5)).toBeCloseTo(
-      Math.sqrt(512 * 384),
-      9,
-    )
+    expect(visualWeight({ displayAreaCssPx: 512 * 384 }, 0.5)).toBeCloseTo(Math.sqrt(512 * 384), 9)
   })
 
   it('is sublinear in area: doubling area less than doubles weight', () => {

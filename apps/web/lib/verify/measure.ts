@@ -68,7 +68,10 @@ export function supportedFormat(format: string): CodecFormat | null {
  * axis would need upscaling: fabricating pixels the source does not carry
  * is refused, on both axes, and the caller reports that refusal.
  */
-export function deriveReference(source: RawImage, target: { w: number; h: number }): RawImage | null {
+export function deriveReference(
+  source: RawImage,
+  target: { w: number; h: number },
+): RawImage | null {
   if (target.w === source.width && target.h === source.height) {
     return { width: source.width, height: source.height, data: new Uint8ClampedArray(source.data) }
   }
@@ -128,13 +131,17 @@ export async function remeasure(
   try {
     outImg = await decode(outFormat, output.bytes)
   } catch (err) {
-    return unverifiable([`The output bytes failed to decode as ${outFormat}: ${describeError(err)}`])
+    return unverifiable([
+      `The output bytes failed to decode as ${outFormat}: ${describeError(err)}`,
+    ])
   }
   let srcImg: RawImage
   try {
     srcImg = await decode(srcFormat, source.bytes)
   } catch (err) {
-    return unverifiable([`The source bytes failed to decode as ${srcFormat}: ${describeError(err)}`])
+    return unverifiable([
+      `The source bytes failed to decode as ${srcFormat}: ${describeError(err)}`,
+    ])
   }
 
   const ref = deriveReference(srcImg, entry.reference)
@@ -196,6 +203,8 @@ export async function remeasure(
     verdict: 'fail',
     metrics,
     referenceHashMatch,
-    notes: ['The re-measured numbers disagree with the receipt beyond the documented decoder tolerance.'],
+    notes: [
+      'The re-measured numbers disagree with the receipt beyond the documented decoder tolerance.',
+    ],
   }
 }

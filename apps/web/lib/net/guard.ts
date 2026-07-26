@@ -124,7 +124,10 @@ async function checkTarget(
   resolve: AddressResolver,
 ): Promise<GuardedFetchRefusal | { ok: true }> {
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    return refuse('bad-scheme', `scheme ${url.protocol} is refused; only http and https are fetched`)
+    return refuse(
+      'bad-scheme',
+      `scheme ${url.protocol} is refused; only http and https are fetched`,
+    )
   }
   if (url.username !== '' || url.password !== '') {
     return refuse('credentials', 'URLs with embedded credentials are refused')

@@ -48,7 +48,7 @@ const IPV4_BLOCKLIST: readonly Ipv4Range[] = [
 
 function ipv4ToU32(octets: Ipv4): number {
   const [a, b, c, d] = octets
-  return (((a << 24) | (b << 16) | (c << 8) | d) >>> 0)
+  return ((a << 24) | (b << 16) | (c << 8) | d) >>> 0
 }
 
 function inRange(octets: Ipv4, range: Ipv4Range): boolean {

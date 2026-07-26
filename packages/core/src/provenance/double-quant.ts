@@ -311,7 +311,14 @@ export function detectDoubleQuantization(
       `double quantization: undetermined, only ${usable} of ${NUM_BANDS} AC bands ` +
         `carried enough coefficients to analyze (minimum ${MIN_USABLE_BANDS})`,
     )
-    return { generations: null, confidence: 0, bandsAnalyzed: usable, periodicBands: periodic, bands, evidence }
+    return {
+      generations: null,
+      confidence: 0,
+      bandsAnalyzed: usable,
+      periodicBands: periodic,
+      bands,
+      evidence,
+    }
   }
 
   if (periodic >= MIN_PERIODIC_BANDS) {
@@ -321,7 +328,14 @@ export function detectDoubleQuantization(
         `index histograms, consistent with at least two encode generations ` +
         `(confidence ${confidence.toFixed(2)})`,
     )
-    return { generations: 2, confidence, bandsAnalyzed: usable, periodicBands: periodic, bands, evidence }
+    return {
+      generations: 2,
+      confidence,
+      bandsAnalyzed: usable,
+      periodicBands: periodic,
+      bands,
+      evidence,
+    }
   }
 
   if (periodic === 0) {
@@ -330,12 +344,26 @@ export function detectDoubleQuantization(
         `no evidence beyond a single generation (confidence 0.70; same-quality ` +
         `re-encodes and fine-then-coarse histories are invisible to this analysis)`,
     )
-    return { generations: 1, confidence: 0.7, bandsAnalyzed: usable, periodicBands: 0, bands, evidence }
+    return {
+      generations: 1,
+      confidence: 0.7,
+      bandsAnalyzed: usable,
+      periodicBands: 0,
+      bands,
+      evidence,
+    }
   }
 
   evidence.push(
     `double quantization: undetermined, exactly 1 of ${usable} analyzed AC bands ` +
       `shows periodicity, which supports neither a single nor a repeated encode`,
   )
-  return { generations: null, confidence: 0, bandsAnalyzed: usable, periodicBands: periodic, bands, evidence }
+  return {
+    generations: null,
+    confidence: 0,
+    bandsAnalyzed: usable,
+    periodicBands: periodic,
+    bands,
+    evidence,
+  }
 }

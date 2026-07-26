@@ -58,24 +58,54 @@ describe('sniffContainer', () => {
 
   it('recognizes an avif ftyp box by its major brand', () => {
     const bytes = new Uint8Array([
-      0x00, 0x00, 0x00, 0x1c, ...ascii('ftyp'), ...ascii('avif'),
-      0x00, 0x00, 0x00, 0x00, ...ascii('avif'), ...ascii('mif1'),
+      0x00,
+      0x00,
+      0x00,
+      0x1c,
+      ...ascii('ftyp'),
+      ...ascii('avif'),
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      ...ascii('avif'),
+      ...ascii('mif1'),
     ])
     expect(sniffContainer(bytes)).toBe('avif')
   })
 
   it('recognizes an avif ftyp box by a compatible brand when the major brand differs', () => {
     const bytes = new Uint8Array([
-      0x00, 0x00, 0x00, 0x1c, ...ascii('ftyp'), ...ascii('mif1'),
-      0x00, 0x00, 0x00, 0x00, ...ascii('miaf'), ...ascii('avif'),
+      0x00,
+      0x00,
+      0x00,
+      0x1c,
+      ...ascii('ftyp'),
+      ...ascii('mif1'),
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      ...ascii('miaf'),
+      ...ascii('avif'),
     ])
     expect(sniffContainer(bytes)).toBe('avif')
   })
 
   it('returns null for a non-avif ftyp box (e.g. an mp4)', () => {
     const bytes = new Uint8Array([
-      0x00, 0x00, 0x00, 0x18, ...ascii('ftyp'), ...ascii('isom'),
-      0x00, 0x00, 0x02, 0x00, ...ascii('isom'), ...ascii('mp41'),
+      0x00,
+      0x00,
+      0x00,
+      0x18,
+      ...ascii('ftyp'),
+      ...ascii('isom'),
+      0x00,
+      0x00,
+      0x02,
+      0x00,
+      ...ascii('isom'),
+      ...ascii('mp41'),
     ])
     expect(sniffContainer(bytes)).toBeNull()
   })

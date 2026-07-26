@@ -46,7 +46,8 @@ export function niceTicks(maxValue: number, targetCount = 5): number[] {
   const rawStep = maxValue / targetCount
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
   const residual = rawStep / magnitude
-  const multiplier = residual <= 1 ? 1 : residual <= 2 ? 2 : residual <= 2.5 ? 2.5 : residual <= 5 ? 5 : 10
+  const multiplier =
+    residual <= 1 ? 1 : residual <= 2 ? 2 : residual <= 2.5 ? 2.5 : residual <= 5 ? 5 : 10
   const step = multiplier * magnitude
   const ticks: number[] = []
   const count = Math.ceil(maxValue / step - 1e-9)
@@ -92,8 +93,7 @@ export function buildChartGeometry(
   const yMax = yTickValues[yTickValues.length - 1] ?? 1
 
   const toX = (bytes: number) => plot.left + (bytes / xMax) * (plot.right - plot.left)
-  const toY = (distortion: number) =>
-    plot.bottom - (distortion / yMax) * (plot.bottom - plot.top)
+  const toY = (distortion: number) => plot.bottom - (distortion / yMax) * (plot.bottom - plot.top)
 
   const points: PlacedPoint[] = input.map((p) => ({
     ...p,

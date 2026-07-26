@@ -12,7 +12,12 @@ import type { ParsedLedger, ParsedLine, SkippedLine } from './types'
  * correctly, because everything downstream relies on it.
  */
 
-const DECISIONS: readonly string[] = ['encoded', 'kept', 'refused', 'skipped'] satisfies readonly LedgerDecision[]
+const DECISIONS: readonly string[] = [
+  'encoded',
+  'kept',
+  'refused',
+  'skipped',
+] satisfies readonly LedgerDecision[]
 
 type Rec = Record<string, unknown>
 
@@ -35,11 +40,19 @@ function entryProblem(value: unknown): string | null {
     return 'outputHash must be a non-empty string or null'
   }
   const recovered = value.sourceRecovered
-  if (recovered !== null && !(isRec(recovered) && nonEmpty(recovered.from) && nonEmpty(recovered.via))) {
+  if (
+    recovered !== null &&
+    !(isRec(recovered) && nonEmpty(recovered.from) && nonEmpty(recovered.via))
+  ) {
     return 'sourceRecovered must be { from, via } or null'
   }
   const reference = value.reference
-  if (!isRec(reference) || !isPosInt(reference.w) || !isPosInt(reference.h) || !nonEmpty(reference.hash)) {
+  if (
+    !isRec(reference) ||
+    !isPosInt(reference.w) ||
+    !isPosInt(reference.h) ||
+    !nonEmpty(reference.hash)
+  ) {
     return 'reference must be { w, h, hash } with positive integer dimensions'
   }
   if (!isStr(value.decision) || !DECISIONS.includes(value.decision)) {
@@ -77,15 +90,21 @@ function entryProblem(value: unknown): string | null {
     !(
       isRec(provenance) &&
       (provenance.generations === null || isNum(provenance.generations)) &&
-      (provenance.estimatedOriginalQuality === null || isNum(provenance.estimatedOriginalQuality)) &&
-      (provenance.headroom === 'normal' || provenance.headroom === 'low' || provenance.headroom === 'none')
+      (provenance.estimatedOriginalQuality === null ||
+        isNum(provenance.estimatedOriginalQuality)) &&
+      (provenance.headroom === 'normal' ||
+        provenance.headroom === 'low' ||
+        provenance.headroom === 'none')
     )
   ) {
     return 'provenance must be { generations, estimatedOriginalQuality, headroom } or null'
   }
   if (value.encoder !== null && !isStr(value.encoder)) return 'encoder must be a string or null'
   if (!nonEmpty(value.tool)) return 'tool must be a non-empty string'
-  if (value.decision === 'encoded' && (value.outputHash === null || output === null || metrics === null)) {
+  if (
+    value.decision === 'encoded' &&
+    (value.outputHash === null || output === null || metrics === null)
+  ) {
     return 'an "encoded" entry must record outputHash, output, and metrics'
   }
   return null

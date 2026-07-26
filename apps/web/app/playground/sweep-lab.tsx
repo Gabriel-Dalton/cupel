@@ -128,7 +128,9 @@ export function SweepLab() {
             let url: string | null = localOriginalUrl
             if (msg.encoded) {
               url = URL.createObjectURL(
-                new Blob([msg.encoded], { type: MIME[msg.point.format] ?? 'application/octet-stream' }),
+                new Blob([msg.encoded], {
+                  type: MIME[msg.point.format] ?? 'application/octet-stream',
+                }),
               )
               urlsRef.current.push(url)
             }
@@ -193,10 +195,7 @@ export function SweepLab() {
     if (knee) setSelectedKey(pointKey(knee))
   }, [candidates])
 
-  const curve = useMemo(
-    () => assembleCurve(candidates.map((c) => c.point)),
-    [candidates],
-  )
+  const curve = useMemo(() => assembleCurve(candidates.map((c) => c.point)), [candidates])
 
   const chartPoints = useMemo<RdChartPoint[]>(
     () =>
@@ -402,7 +401,10 @@ export function SweepLab() {
             <div className="pg-compare">
               <figure className="pg-compare__pane">
                 <div className="pg-compare__frame">
-                  <img src={originalUrl} alt={`Your original ${meta?.container ?? ''} file, shown as dropped`} />
+                  <img
+                    src={originalUrl}
+                    alt={`Your original ${meta?.container ?? ''} file, shown as dropped`}
+                  />
                 </div>
                 <figcaption>
                   original · {meta ? `${meta.container} · ${formatBytes(meta.source.bytes)}` : ''}
@@ -452,7 +454,10 @@ export function SweepLab() {
                     const isSelected = c.key === selectedKey
                     const rowSaved = meta ? fractionSaved(c.point.bytes, meta.source.bytes) : null
                     return (
-                      <tr key={c.key} className={isSelected ? 'pg-ledger__row--selected' : undefined}>
+                      <tr
+                        key={c.key}
+                        className={isSelected ? 'pg-ledger__row--selected' : undefined}
+                      >
                         <th scope="row">
                           <button
                             type="button"
@@ -494,8 +499,8 @@ export function SweepLab() {
                 The reference was downscaled from {meta.source.width}x{meta.source.height} to{' '}
                 {meta.reference.width}x{meta.reference.height} px (long edge capped at{' '}
                 {MAX_REFERENCE_EDGE} px) to keep a full WebAssembly sweep tolerable. Because of
-                that, your original file is not on the curve: comparing its full-size bytes
-                against a smaller reference would flatter it.
+                that, your original file is not on the curve: comparing its full-size bytes against
+                a smaller reference would flatter it.
               </li>
             )}
             {meta?.flattened && (
@@ -510,9 +515,8 @@ export function SweepLab() {
             </li>
             {skipped.length > 0 && (
               <li>
-                {skipped.length} candidate{skipped.length === 1 ? '' : 's'} failed to encode in
-                this browser and {skipped.length === 1 ? 'was' : 'were'} skipped:{' '}
-                {skipped.join('; ')}.
+                {skipped.length} candidate{skipped.length === 1 ? '' : 's'} failed to encode in this
+                browser and {skipped.length === 1 ? 'was' : 'were'} skipped: {skipped.join('; ')}.
               </li>
             )}
           </ul>

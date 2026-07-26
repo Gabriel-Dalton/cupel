@@ -42,7 +42,9 @@ export const srcsetRecoverer: SourceRecoverer = {
       current && currentDesc
         ? others.filter(
             (o) =>
-              o.desc !== null && o.desc.unit === currentDesc.unit && o.desc.value > currentDesc.value,
+              o.desc !== null &&
+              o.desc.unit === currentDesc.unit &&
+              o.desc.value > currentDesc.value,
           )
         : others
 

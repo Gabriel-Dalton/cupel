@@ -13,7 +13,9 @@ import { hasImageExtension, splitExtension, splitLastSegment, splitUrl } from '.
 
 const DENSITY_MARKER_RE = /@\d+(?:\.\d+)?x$/i
 
-function siblingStems(asset: DiscoveredAsset): { rebuild: (stem: string) => string; stem: string } | null {
+function siblingStems(
+  asset: DiscoveredAsset,
+): { rebuild: (stem: string) => string; stem: string } | null {
   const { path, query, hash } = splitUrl(asset.url)
   const { dir, name } = splitLastSegment(path)
   if (!hasImageExtension(name)) return null

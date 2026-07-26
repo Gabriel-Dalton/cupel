@@ -3,7 +3,12 @@ import type { Encoder } from '@cupel/core'
 import { wasmCodec } from '@cupel/codecs-wasm'
 import { toCandidatePoint } from '../../lib/playground/assemble'
 import { MAX_REFERENCE_EDGE, prepareReference, sniffContainer } from '../../lib/playground/ingest'
-import { SWEEP_FORMATS, buildSweepPlan, type FormatCapabilities, type SweepFormat } from '../../lib/playground/plan'
+import {
+  SWEEP_FORMATS,
+  buildSweepPlan,
+  type FormatCapabilities,
+  type SweepFormat,
+} from '../../lib/playground/plan'
 import type { SweepRequest, SweepResponse } from '../../lib/playground/worker-protocol'
 
 /**
@@ -119,7 +124,14 @@ async function runSweep(request: SweepRequest): Promise<void> {
         encoder: `${encoder.id}@${await encoder.version()}`,
       })
       post(
-        { type: 'point', index, label: step.label, point, encodeMs, encoded: encoded.buffer as ArrayBuffer },
+        {
+          type: 'point',
+          index,
+          label: step.label,
+          point,
+          encodeMs,
+          encoded: encoded.buffer as ArrayBuffer,
+        },
         [encoded.buffer as ArrayBuffer],
       )
     } catch (err) {

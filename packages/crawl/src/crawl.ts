@@ -85,8 +85,7 @@ export async function crawlPage(url: string, opts: CrawlOptions): Promise<PageCr
     const asset: DiscoveredAsset = { ...f.asset, aboveFold: fold.aboveFold[i] === true }
     if (estimate.width !== undefined) asset.displayWidthCssPx = estimate.width
     if (estimate.height !== undefined) asset.displayHeightCssPx = estimate.height
-    asset.role =
-      i === fold.lcpIndex ? 'lcp' : f.kind === 'background' ? 'decorative' : 'content'
+    asset.role = i === fold.lcpIndex ? 'lcp' : f.kind === 'background' ? 'decorative' : 'content'
     return asset
   })
 

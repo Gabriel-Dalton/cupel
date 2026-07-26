@@ -401,15 +401,9 @@ describe('acceptRecoveredSource', () => {
 
   it('effective resolution improvements must clear the ratio tolerance', () => {
     const current = prov({ effectiveResolution: { w: 800, h: 600 } })
-    const real = acceptRecoveredSource(
-      current,
-      prov({ effectiveResolution: { w: 1600, h: 1200 } }),
-    )
+    const real = acceptRecoveredSource(current, prov({ effectiveResolution: { w: 1600, h: 1200 } }))
     expect(real.accepted).toBe(true)
-    const noise = acceptRecoveredSource(
-      current,
-      prov({ effectiveResolution: { w: 810, h: 600 } }),
-    )
+    const noise = acceptRecoveredSource(current, prov({ effectiveResolution: { w: 810, h: 600 } }))
     expect(noise.accepted).toBe(false)
   })
 

@@ -86,9 +86,7 @@ const REGISTRY_FAMILIES = FINGERPRINT_REGISTRY.map((entry) => entry.family)
  */
 export function softnessVerdict(p95: number, longEdge: number): 'sharp' | 'soft' | 'unknown' {
   const t =
-    longEdge > LAPLACIAN_NATIVE_LIMIT
-      ? SOFTNESS_THRESHOLDS.normalized
-      : SOFTNESS_THRESHOLDS.native
+    longEdge > LAPLACIAN_NATIVE_LIMIT ? SOFTNESS_THRESHOLDS.normalized : SOFTNESS_THRESHOLDS.native
   if (p95 >= t.sharpMin) return 'sharp'
   if (p95 < t.softMax) return 'soft'
   return 'unknown'
@@ -206,9 +204,7 @@ function analyzeJpegBytes(bytes: Uint8Array | undefined, image: RawImage): JpegE
 
 export function analyzeProvenance(input: ProvenanceInput): ProvenanceRecord {
   const { container, image } = input
-  const evidence: string[] = [
-    `container ${container}, declared ${image.width}x${image.height}`,
-  ]
+  const evidence: string[] = [`container ${container}, declared ${image.width}x${image.height}`]
 
   const jpeg: JpegEvidence =
     container === 'jpeg'
