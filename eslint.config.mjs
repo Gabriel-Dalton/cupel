@@ -43,6 +43,24 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    /*
+     * Build and maintenance scripts are plain ESM run by Node, so they get the
+     * Node globals. Declaring them here rather than pulling in the `globals`
+     * package keeps the list to what these scripts actually use, and it stays
+     * scoped to .mjs: nothing that ships to a browser is covered.
+     */
+    files: ['**/*.mjs'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        URL: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        process: 'readonly',
+      },
+    },
+  },
+  {
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',

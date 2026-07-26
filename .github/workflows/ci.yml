@@ -50,6 +50,38 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
+  # Builds the site the way the deployment does: same command, same working
+  # directory.
+  #
+  # This job exists because a broken build used to reach the deployment before
+  # anyone here noticed: lint, typecheck, and test all pass on a tree that
+  # cannot build, since none of them run next build. When this is red, read the
+  # log here rather than digging through deployment logs.
+  #
+  # Both Vercel projects set Root Directory to apps/web, so every command runs
+  # from there and not from the repository root (see the commit that fixed
+  # outputDirectory for what that costs when it is forgotten). Running it from
+  # the same place is the point: a build that only works from the root is a
+  # build that only works here.
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@cupel/web...
+      # The deployment serves whatever outputDirectory points at, which is
+      # .next relative to apps/web. If the build lands somewhere else the
+      # deployment fails after a build that looked fine.
+      - run: test -f .next/BUILD_ID
+
   # Runs the same RawImage inputs through the sharp adapter and the WASM
   # adapter and asserts the resulting SSIM values agree. If these two ever
   # drift, the browser playground's credibility is gone.

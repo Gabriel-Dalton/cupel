@@ -24,11 +24,10 @@ This is enforced mechanically, not by convention:
 - Core's tsconfig includes no Node and no DOM type libraries, so platform APIs do not even
   typecheck.
 
-Why it matters: the exact same SSIM implementation runs in Node, in CI, and in your browser.
-When the playground lands, a number computed on your machine, from your image, is produced by
-the same code that produced the published numbers. That is what makes the numbers checkable
-rather than takeable on faith, and it is the single most important structural decision in the
-project.
+Why it matters: the exact same SSIM implementation runs in Node, in CI, and in your browser. A
+number the [playground](/playground) computes from your image, on your machine, comes out of the
+same code that produced the published numbers. That is what makes the numbers checkable rather
+than takeable on faith, and it is the single most important structural decision in the project.
 
 ## Codec injection: the Encoder interface
 
@@ -63,15 +62,18 @@ browser demo that disagrees with the CLI would be worse than no demo.
 
 ## Package responsibilities
 
-| Package              | Owns                                   | Never touches                    |
-| -------------------- | -------------------------------------- | -------------------------------- |
-| `@cupel/core`        | all math, all decisions, ledger schema | filesystem, network, codecs      |
-| `@cupel/codecs-node` | sharp                                  | decisions                        |
-| `@cupel/codecs-wasm` | jSquash WASM codecs                    | decisions, filesystem            |
-| `apps/web`           | this site                              | measurement math (it imports it) |
+| Package              | Owns                                             | Never touches                    |
+| -------------------- | ------------------------------------------------ | -------------------------------- |
+| `@cupel/core`        | all math, all decisions, ledger schema           | filesystem, network, codecs      |
+| `@cupel/codecs-node` | sharp                                            | decisions                        |
+| `@cupel/codecs-wasm` | jSquash WASM codecs                              | decisions, filesystem            |
+| `@cupel/cli`         | the commands, the filesystem, receipts on disk   | measurement math (it imports it) |
+| `@cupel/crawl`       | fetching a page and its display dimensions       | decisions, pixels                |
+| `@cupel/recover`     | proposing a better original than the one on page | accepting its own proposals      |
+| `apps/web`           | this site                                        | measurement math (it imports it) |
 
-Packages for the CLI, crawler, source recovery, corpus, and Claude Code skill exist as stubs
-with a README only. They gain source when their milestone arrives, not before.
+`@cupel/corpus` holds a manifest type and nothing else, and `@cupel/skill` is a README. Both gain
+source when their milestone arrives, not before.
 
 ## Where decisions will live
 

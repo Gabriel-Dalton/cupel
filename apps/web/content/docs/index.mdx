@@ -33,7 +33,9 @@ around them, not the other way round.
   `cupel write` to apply a plan (dry run unless you pass `--apply`), and `cupel verify` to
   recheck the receipts it wrote.
 - **This site**: the landing page runs the real `@cupel/core` code, both at build time for the
-  measurement table and in your browser for the demo.
+  measurement table and in your browser for the demo. The [playground](/playground) runs a full
+  sweep on an image you choose without uploading it, and [verify](/verify) rechecks a receipt
+  against the files it describes. Neither needs anything installed.
 
 What does not exist yet: page-level budget allocation and source recovery. Both are built and
 tested as libraries but nothing calls them yet. The [roadmap](/docs/roadmap) is specific about
@@ -47,7 +49,8 @@ only place it lives.
 
 ## Reading order
 
-1. [Getting started](/docs/getting-started): run the tests and take a first measurement.
+1. [Getting started](/docs/getting-started): try it in a browser, or build the workspace and run
+   the commands.
 2. [Architecture](/docs/architecture): the one structural rule that everything depends on.
 3. [Metrics](/docs/metrics): what each measurement computes and where it is blind.
 4. [Roadmap](/docs/roadmap): what is promised, in what order, and what "done" means.

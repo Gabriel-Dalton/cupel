@@ -1,15 +1,32 @@
 # Getting started
 
-cupel is pre-release. The packages are not on npm yet, there is no CLI yet, and this page will
-not pretend otherwise. What you can do today is clone the repository, run the full test suite,
-and use the measurement layer as a library inside the workspace.
+There are two ways to run cupel, and only one of them needs a terminal.
 
-## Requirements
+## Nothing to install: use it in your browser
+
+The measurement core has no platform dependencies, so the same code that runs in CI runs in a
+tab. Two pages are built on that:
+
+- **[The playground](/playground)** takes an image you drop on it and encodes it across every
+  format and quality step the WebAssembly codecs offer, measures each candidate against your
+  original, and plots the frontier worth spending bytes on.
+- **[Verify](/verify)** rechecks a receipt against the files it describes, so anyone can audit a
+  set of changes without installing cupel at all.
+
+Nothing is uploaded in either case: no server, no queue, no account. This is the fastest way to
+find out whether cupel says anything useful about your images.
+
+## On your machine
+
+cupel is pre-release, so the packages are not on npm yet. You build the workspace from source and
+run the CLI from it.
+
+### Requirements
 
 - Node.js 20 or newer
 - pnpm 10
 
-## Clone and verify
+### Clone and verify
 
 ```bash
 git clone https://github.com/Gabriel-Dalton/cupel.git
@@ -24,7 +41,36 @@ pnpm build
 The test suite is the contract. If it is green, every number described in
 [Metrics](/docs/metrics) behaves as documented on your machine, in your Node version.
 
-## The shape everything operates on
+### The commands
+
+Once `pnpm build` has run, the CLI is at `packages/cli/bin/cupel.js`. Nothing here writes a file
+unless you pass `--apply`.
+
+```bash
+# What has already been done to this file?
+node packages/cli/bin/cupel.js inspect ./public/hero.jpg
+
+# Audit a directory or a live page by URL. Read only.
+node packages/cli/bin/cupel.js audit ./public
+node packages/cli/bin/cupel.js audit https://example.com
+
+# Plan the writes and print them. Still touches nothing.
+node packages/cli/bin/cupel.js write ./public
+
+# Write for real, keeping every original and a receipt per decision.
+node packages/cli/bin/cupel.js write ./public --apply
+
+# Recompute the receipt's numbers against the files on disk.
+node packages/cli/bin/cupel.js verify
+```
+
+Every command takes `--json` if you would rather parse the report than read it. `write --apply`
+refuses to run in a directory with uncommitted changes unless you add `--force`, because a receipt
+only means something measured against a known starting point.
+
+## Using the measurement layer as a library
+
+### The shape everything operates on
 
 `@cupel/core` never touches files, network, or codecs. Every function takes decoded pixels:
 
@@ -39,7 +85,7 @@ type RawImage = {
 How you obtain a `RawImage` is your platform's business. Inside this repo, the codec adapters do
 it for you (see below).
 
-## A first measurement
+### A first measurement
 
 From a package inside the workspace, depend on `@cupel/core` via
 `"@cupel/core": "workspace:*"` and call the metrics directly:
@@ -57,7 +103,7 @@ const seams = blockingScore(candidate) // { horizontal, vertical, combined }
 const resolution = effectiveResolution(candidate) // declared vs measured pixels
 ```
 
-## Decoding real files
+### Decoding real files
 
 Codecs live outside core, behind the `Encoder` interface. In Node, wrap
 [sharp](https://sharp.pixelplumbing.com):
@@ -84,5 +130,13 @@ values agree to within 1e-6. The number you compute in a browser is the number C
 
 ## What you cannot do yet
 
-There is no `cupel` command, no audit, no allocation, and no write path of any kind. Those land
-in the order given on the [roadmap](/docs/roadmap), and each arrives with its tests.
+- **Install it from npm.** Nothing is published, so the workspace is the only distribution.
+- **Audit a URL from this website.** The CLI does it; the hosted page and its endpoint are not
+  built.
+- **Spend one budget across a whole page.** The allocator ships in `@cupel/core` and is tested,
+  but `cupel write` still decides asset by asset rather than against a page budget.
+- **Have cupel find the better original your pipeline buried.** The recoverers exist and are
+  tested in `@cupel/recover`, and nothing wires them into the writer yet, so every receipt records
+  `sourceRecovered: null`.
+
+Each of those lands in the order given on the [roadmap](/docs/roadmap), with its tests.

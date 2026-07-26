@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CommandBlock } from '../components/command-block'
 import { runAssay } from '../lib/assay'
 import { TryIt } from './_demo/try-it'
 import './_demo/demo.css'
@@ -47,6 +48,48 @@ const PROBLEMS = [
 ]
 
 /**
+ * The two routes into the same code. The browser one comes first on purpose:
+ * a terminal is a hard requirement for most of the audience, and everything
+ * measured in the browser is measured by the code the CLI ships (core is
+ * platform neutral, see the architecture notes), so the browser route is a
+ * real answer rather than a toy version of one.
+ */
+const WAYS = [
+  {
+    tag: 'Nothing to install',
+    title: 'In your browser',
+    body:
+      'Your image is read in the tab you are looking at. There is no upload, no account, and no ' +
+      'server doing the work.',
+    points: [
+      'Run a full quality sweep on your own image in the playground, and see every format and every quality step plotted against the original.',
+      'Check a record someone hands you against the files it describes, without installing cupel.',
+      'Good for deciding whether cupel is worth your time, and for settling an argument about one image.',
+    ],
+    actions: [
+      { href: '/playground', label: 'Open the playground', primary: true },
+      { href: '/verify', label: 'Check a record', primary: false },
+    ],
+  },
+  {
+    tag: 'For whole folders',
+    title: 'On your machine',
+    body:
+      'The same measurements, pointed at a directory instead of one file, with the part that ' +
+      'writes files behind a flag.',
+    points: [
+      'Audit hundreds of images at once and get a row per file, without changing anything.',
+      'Write the smaller versions when you are ready, keeping every original and a receipt for each decision.',
+      'Refuses to write into a folder with uncommitted changes, because a receipt needs a known starting point.',
+    ],
+    actions: [
+      { href: '#steps', label: 'See the commands', primary: false },
+      { href: '/docs/getting-started', label: 'Read the docs', primary: false },
+    ],
+  },
+]
+
+/**
  * Numbered because this genuinely is a sequence: you install it, then you
  * look without touching anything, then you let it write.
  */
@@ -58,6 +101,7 @@ const STEPS = [
       'pnpm 10.',
     command:
       'git clone https://github.com/Gabriel-Dalton/cupel\ncd cupel\npnpm install\npnpm build',
+    copyLabel: 'the setup commands',
     note: 'Everything after this runs on your machine. Nothing is sent anywhere.',
   },
   {
@@ -66,6 +110,7 @@ const STEPS = [
       'Point it at a folder of images. It reads them, tells you what it found, and writes nothing ' +
       'at all. This is the command to run first, and it is safe to run on anything.',
     command: 'node packages/cli/bin/cupel.js audit ./public',
+    copyLabel: 'the audit command',
     note:
       'You get a row per image: how big it is, how much quality is left, and which files it would ' +
       'refuse to touch.',
@@ -79,16 +124,27 @@ const STEPS = [
       'known starting point.',
     command:
       'node packages/cli/bin/cupel.js write ./public\nnode packages/cli/bin/cupel.js write ./public --apply',
+    copyLabel: 'the write commands',
     note: 'Then run verify to have it re-check its own numbers against the files on disk.',
   },
 ]
 
+/**
+ * Kept in step with ROADMAP.md, which is the file that tracks reality against
+ * the specification. Two rows are still honest "not yet": page level allocation
+ * (M5, the math ships and nothing calls it with a real budget) and source
+ * recovery (M7, the recoverers are tested but the writer does not use them).
+ * Everything above them is implemented and tested, so the list now leads with
+ * that instead of apologising.
+ */
 const STATUS = [
-  { label: 'Reading a file and reporting on it', state: 'done' as const },
+  { label: 'Trying it on your own image with nothing installed', state: 'done' as const },
+  { label: 'Reading a file and telling you what it found', state: 'done' as const },
   { label: 'Refusing files with nothing left to give', state: 'done' as const },
+  { label: 'Auditing a folder, or a live page by its URL', state: 'done' as const },
   { label: 'Writing smaller files, with receipts', state: 'done' as const },
-  { label: 'Checking receipts in a browser', state: 'done' as const },
-  { label: 'Auditing a whole page by URL', state: 'part' as const },
+  { label: 'Checking those receipts in a browser', state: 'done' as const },
+  { label: 'Running that audit from this site instead of a terminal', state: 'part' as const },
   { label: 'Spending one budget across a whole page', state: 'soon' as const },
   { label: 'Finding the better original your pipeline buried', state: 'soon' as const },
 ]
@@ -118,12 +174,16 @@ export default function Home() {
             <a className="btn btn--primary" href="#try">
               Try it on a photo
             </a>
+            <Link className="btn" href="/playground">
+              Use your own image
+            </Link>
             <Link className="btn" href="/docs/getting-started">
               Read the docs
             </Link>
           </div>
           <p className="hero__meta">
-            Runs on your own machine. Never writes a file unless you ask it to.
+            Works in your browser with nothing to install, or on your own machine. Never writes a
+            file unless you ask it to.
           </p>
         </div>
       </section>
@@ -141,6 +201,20 @@ export default function Home() {
             which is the biggest easy win there is.
           </p>
           <TryIt />
+          <div className="next-step">
+            <div className="next-step__text">
+              <h3>Now try one of your own, properly.</h3>
+              <p>
+                The playground takes any image you drop on it and runs the whole thing: every
+                format, every quality step, each one measured against your original and plotted so
+                you can see where spending more bytes stops buying anything. Same code, your image,
+                still nothing uploaded.
+              </p>
+            </div>
+            <Link className="btn btn--primary" href="/playground">
+              Open the playground
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -162,15 +236,64 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section--steps" aria-labelledby="steps-heading">
+      <section className="section" aria-labelledby="ways-heading">
+        <div className="shell">
+          <p className="eyebrow">Two ways to use it</p>
+          <h2 className="section__title" id="ways-heading">
+            You do not have to open a terminal to use this.
+          </h2>
+          <p className="section__lede">
+            The measuring code has no idea where it is running, so the browser and the command line
+            give the same answers on the same image. Start wherever suits you.
+          </p>
+          <div className="ways">
+            {WAYS.map((way) => (
+              <article key={way.title} className="way">
+                <p className="badge badge--now">{way.tag}</p>
+                <h3>{way.title}</h3>
+                <p>{way.body}</p>
+                <ul className="way__list">
+                  {way.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+                <div className="way__actions">
+                  {way.actions.map((action) =>
+                    action.href.startsWith('#') ? (
+                      <a
+                        key={action.href}
+                        className={action.primary ? 'btn btn--primary' : 'btn'}
+                        href={action.href}
+                      >
+                        {action.label}
+                      </a>
+                    ) : (
+                      <Link
+                        key={action.href}
+                        className={action.primary ? 'btn btn--primary' : 'btn'}
+                        href={action.href}
+                      >
+                        {action.label}
+                      </Link>
+                    ),
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--steps" id="steps" aria-labelledby="steps-heading">
         <div className="shell">
           <p className="eyebrow">How to use it</p>
           <h2 className="section__title" id="steps-heading">
             Three commands, in this order.
           </h2>
           <p className="section__lede">
-            The order matters. The first two cannot change a single file, so you can see exactly
-            what would happen before anything does.
+            This is the machine route. The order matters: the first two cannot change a single file,
+            so you can see exactly what would happen before anything does. Every block has a copy
+            button, so none of it needs retyping.
           </p>
           <ol className="steps">
             {STEPS.map((step, i) => (
@@ -181,9 +304,7 @@ export default function Home() {
                 <div className="step__body">
                   <h3>{step.heading}</h3>
                   <p>{step.body}</p>
-                  <pre className="cmd" tabIndex={0}>
-                    <code>{step.command}</code>
-                  </pre>
+                  <CommandBlock command={step.command} describes={step.copyLabel} />
                   <p className="step__note">{step.note}</p>
                 </div>
               </li>
@@ -209,7 +330,7 @@ export default function Home() {
               Check a record
             </Link>
             <Link className="btn" href="/playground">
-              Explore the full quality curve
+              Measure your own image
             </Link>
           </div>
         </div>
@@ -270,14 +391,15 @@ export default function Home() {
 
       <section className="section" aria-labelledby="status-heading">
         <div className="shell">
-          <p className="eyebrow">Honest status</p>
+          <p className="eyebrow">Where it stands</p>
           <h2 className="section__title" id="status-heading">
-            What works today, and what does not.
+            Most of this works today. Here is the part that does not.
           </h2>
           <p className="section__lede">
-            This is pre-release and built in the open. The list below is kept accurate on purpose,
-            because a tool whose whole point is telling you the truth about your files should
-            probably tell you the truth about itself.
+            Measuring, refusing, auditing, writing, and checking receipts are all built and covered
+            by tests you can run yourself. Two pieces are still landing, and they stay on this list
+            until they are done, because a tool whose whole point is telling you the truth about
+            your files should tell you the truth about itself.
           </p>
           <ul className="status">
             {STATUS.map((item) => (
@@ -300,12 +422,16 @@ export default function Home() {
             Try it on your own images.
           </h2>
           <p className="section__lede">
-            Start with the audit command. It reads your folder, tells you what it found, and cannot
-            change anything.
+            Quickest start is the playground: drop one image in, watch it get measured, keep the
+            result. When you want it across a whole folder, the audit command reads everything,
+            tells you what it found, and cannot change a thing.
           </p>
           <div className="hero__actions">
-            <Link className="btn btn--primary" href="/docs/getting-started">
-              Get started
+            <Link className="btn btn--primary" href="/playground">
+              Open the playground
+            </Link>
+            <Link className="btn" href="/docs/getting-started">
+              Get started with the commands
             </Link>
             <a className="btn" href="https://github.com/Gabriel-Dalton/cupel">
               Source on GitHub
