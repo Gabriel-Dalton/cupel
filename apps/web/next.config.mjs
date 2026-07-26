@@ -1,4 +1,5 @@
 import createMDX from '@next/mdx'
+import remarkGfm from 'remark-gfm'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,6 +24,14 @@ const nextConfig = {
   },
 }
 
-const withMDX = createMDX({})
+// remark-gfm is what makes pipe tables parse. Without it a markdown table in
+// a doc renders as one run of literal pipe characters in a paragraph, which is
+// exactly what the architecture page shipped. It also brings GFM strikethrough,
+// task lists, and bare-URL autolinking, all of which the docs already assume.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [remarkGfm],
+  },
+})
 
 export default withMDX(nextConfig)

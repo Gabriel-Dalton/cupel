@@ -19,6 +19,8 @@ const SURFACES = [
   join(WEB_ROOT, 'lib', 'verify'),
   join(WEB_ROOT, 'app', '_demo'),
   join(WEB_ROOT, 'lib', 'demo'),
+  // Shared components render copy on the landing page and in every doc.
+  join(WEB_ROOT, 'components'),
 ]
 
 /** Individual files that are reader-facing but not in a guarded directory. */

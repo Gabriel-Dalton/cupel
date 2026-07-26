@@ -386,6 +386,66 @@ samp {
   font-weight: var(--weight-semibold);
 }
 
+/*
+ * Docs tables. Markdown pipe tables are parsed by remark-gfm (see
+ * next.config.mjs) and wrapped in .prose__table by mdx-components.tsx. The
+ * wrapper is what scrolls: a table of package names cannot reflow, and the
+ * page body must never be the thing that scrolls sideways.
+ */
+.prose__table {
+  margin-block: var(--space-5);
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  background: var(--bg-raised);
+}
+
+.prose table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.prose thead th {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.prose td {
+  color: var(--ink-muted);
+}
+
+/* The first cell of a row is the thing being described, so it leads. */
+.prose tbody td:first-child {
+  color: var(--ink);
+  font-weight: var(--weight-medium);
+}
+
+/* A package name broken across two lines is a package name nobody can read. */
+.prose td code {
+  white-space: nowrap;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
 /* Landing: shared section scaffolding */
 .section {
   border-top: 1px solid var(--line);
@@ -501,6 +561,102 @@ samp {
   font-weight: var(--weight-medium);
 }
 
+/*
+ * Landing: the browser route, offered straight after the demo. A reader who
+ * has just watched a sample photograph get smaller wants to try their own one,
+ * and the next thing on the page should be that, not an install step.
+ */
+.next-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  background: var(--bg-raised);
+  border: 1px solid var(--keep-line);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-1);
+}
+
+.next-step__text {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 60ch;
+}
+
+.next-step h3 {
+  font-size: var(--text-md);
+}
+
+.next-step p {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+/* Landing: browser or terminal, side by side. */
+.ways {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-7);
+}
+
+.way {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-3);
+}
+
+.way h3 {
+  font-size: var(--text-lg);
+}
+
+.way > p {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.way__list {
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.way__list li {
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.way__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.way__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
 /* Landing: the three commands. Numbered because it is a real sequence. */
 .steps {
   list-style: none;
@@ -571,6 +727,82 @@ samp {
   letter-spacing: -0.01em;
   color: var(--ink);
   white-space: pre;
+}
+
+/*
+ * A command block and its copy button. The button floats over the top right
+ * corner on a surface of its own, so a long command scrolling underneath
+ * disappears behind it instead of colliding with the label. The block reserves
+ * room for it on the right so the first line never starts underneath it.
+ */
+.cmd-block {
+  display: grid;
+  position: relative;
+}
+
+.cmd-block > pre {
+  margin: 0;
+  padding-right: 7rem;
+}
+
+.cmd-block--doc {
+  margin-block: var(--space-5);
+}
+
+.cmd-block__tools {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-1);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.copy:hover {
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+.copy__glyph {
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * The confirmation word is wider than "Copy", and a button that changes width
+ * under the cursor is unpleasant to click twice. Reserve the wider of the two.
+ */
+.copy__word {
+  min-width: 5.5ch;
+  text-align: left;
+}
+
+.copy__announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Landing: specimen ledger */

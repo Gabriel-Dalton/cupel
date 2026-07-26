@@ -20,7 +20,8 @@
     "@next/mdx": "^15.5.22",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@types/mdx": "^2.0.14",
