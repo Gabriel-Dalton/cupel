@@ -10,12 +10,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@cupel/core": "workspace:*"
+    "@cupel/core": "workspace:*",
+    "node-html-parser": "^7.1.0",
+    "robots-parser": "^3.0.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.7"
   }
 }
