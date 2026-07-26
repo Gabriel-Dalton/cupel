@@ -1,6 +1,6 @@
 {
   "name": "@cupel/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The cupel command line: inspect, audit, verify, and, only behind an explicit flag, write.",
   "license": "Apache-2.0",
   "type": "module",
@@ -11,8 +11,12 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "bin",
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -22,10 +26,12 @@
     "@cupel/crawl": "workspace:*",
     "@cupel/recover": "workspace:*",
     "commander": "^13.0.0",
-    "picocolors": "^1.1.0"
+    "picocolors": "^1.1.0",
+    "sharp": "^0.34.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.1",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

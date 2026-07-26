@@ -792,6 +792,44 @@ samp {
   max-width: 56ch;
 }
 
+/* Landing: terminal transcript. One honest artifact rather than a claim, so
+   the block is a real captured run and is never truncated with an ellipsis. */
+.transcript {
+  margin-top: var(--space-7);
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-1);
+}
+
+.transcript pre {
+  margin: 0;
+  padding: var(--space-5);
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--ink-muted);
+  white-space: pre;
+}
+
+.transcript__cmd {
+  color: var(--ink);
+  font-weight: var(--weight-semibold);
+}
+
+.transcript__refuse {
+  color: var(--accent-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.transcript__caption {
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-2xs);
+  color: var(--ink-faint);
+}
+
 /* Motion discipline */
 @media (prefers-reduced-motion: reduce) {
   *,

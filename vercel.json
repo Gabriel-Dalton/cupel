@@ -8,12 +8,8 @@
   "regions": ["iad1"],
 
   "functions": {
-    "apps/web/app/api/probe/route.ts": { "maxDuration": 15 },
-    "apps/web/app/api/audit/route.ts": { "maxDuration": 30 },
-    "apps/web/app/api/cron/corpus/route.ts": { "maxDuration": 300 }
+    "apps/web/app/api/probe/route.ts": { "maxDuration": 15 }
   },
-
-  "crons": [{ "path": "/api/cron/corpus", "schedule": "0 7 * * 1" }],
 
   "headers": [
     {
@@ -54,5 +50,5 @@
     }
   ],
 
-  "rewrites": [{ "source": "/install", "destination": "/docs/installation" }]
+  "rewrites": [{ "source": "/install", "destination": "/docs/getting-started" }]
 }

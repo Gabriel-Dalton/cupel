@@ -24,7 +24,7 @@ const PIPELINE = [
   {
     step: '02',
     verb: 'Prove',
-    status: { className: 'badge badge--now', label: 'in progress' },
+    status: { className: 'badge badge--done', label: 'ships today' },
     body:
       'Reconstruct what has been done to the file: how many times it was compressed, at what ' +
       'quality, by which encoder. That history sets the headroom, and headroom decides whether ' +
@@ -33,19 +33,49 @@ const PIPELINE = [
   {
     step: '03',
     verb: 'Allocate',
-    status: { className: 'badge badge--next', label: 'planned' },
+    status: { className: 'badge badge--now', label: 'math ships, not wired' },
     body:
       'Treat the page as one byte budget rather than sixty separate files. Spend it where it ' +
-      'buys the most visible quality, which is almost never evenly.',
+      'buys the most visible quality, which is almost never evenly. The solver is built and ' +
+      'tested; today the writer still decides one file at a time.',
   },
   {
     step: '04',
     verb: 'Receipt',
-    status: { className: 'badge badge--next', label: 'planned' },
+    status: { className: 'badge badge--done', label: 'ships today' },
     body:
       'Record every decision, every refusal, and the numbers behind them in a form anyone can ' +
       'recompute in a browser. A claim you cannot check is marketing.',
   },
+]
+
+/**
+ * A real captured run against five generated specimens, not an illustration.
+ * Two files are refused for exhausted headroom, one vector is skipped
+ * untouched, and two are encoded. Reproduce it with the fixtures in
+ * packages/cli/test.
+ */
+const TRANSCRIPT_LINES: { text: string; kind?: 'cmd' | 'refuse' }[] = [
+  { text: '$ cupel write ./specimens', kind: 'cmd' },
+  { text: '' },
+  { text: 'asset          decision  before    after    saved  ssim    output' },
+  { text: 'chart.png      REFUSED   4.4 kB    -        -      -       -', kind: 'refuse' },
+  { text: 'hero.jpg       encoded   156.2 kB  76.0 kB  51.4%  0.9711  hero.webp' },
+  { text: 'laundered.png  encoded   261.4 kB  18.1 kB  93.1%  0.9840  laundered.jpg' },
+  { text: 'logo.svg       skipped   116 B     -        -      -       -' },
+  { text: 'tired.jpg      REFUSED   18.3 kB   -        -      -       -', kind: 'refuse' },
+  { text: '' },
+  { text: 'Reasons' },
+  { text: '  tired.jpg: headroom none: estimated original quality 34 is below 60.' },
+  { text: '    Re-encoding is refused; recover a better original instead' },
+  { text: '  chart.png: headroom none: blocking score 1.00 in a lossless container:' },
+  { text: '    pixels were laundered from a jpeg' },
+  { text: '  logo.svg: svg is reported but not decoded: cupel never rasterizes a vector' },
+  { text: '' },
+  { text: 'saved  323.5 kB (73.4%)' },
+  { text: '' },
+  { text: 'Nothing was written. This was a dry run, which is the default.' },
+  { text: 'Re-run with --apply to write these outputs and the receipts.' },
 ]
 
 const MEASUREMENTS = [
@@ -101,48 +131,50 @@ const ROADMAP = [
   {
     id: 'M2',
     name: 'Site and playground',
-    status: { className: 'badge badge--now', label: 'in progress' },
+    status: { className: 'badge badge--done', label: 'done' },
     body:
-      'This site and its docs, then an in-browser demo that runs a full quality sweep without ' +
+      'This site and its docs, plus an in-browser demo that runs a full quality sweep without ' +
       'uploading anything.',
   },
   {
     id: 'M3',
     name: 'File history',
-    status: { className: 'badge badge--next', label: 'next' },
+    status: { className: 'badge badge--done', label: 'done' },
     body:
       'Read a file’s compression history from its own bytes: estimated original quality, ' +
-      'generation count, laundered files.',
+      'generation count, laundered files. Shipped as cupel inspect.',
   },
   {
     id: 'M4',
     name: 'Auditor',
-    status: { className: 'badge badge--next', label: 'next' },
+    status: { className: 'badge badge--now', label: 'cli done' },
     body:
-      'Point it at a page and get a read-only report: what is oversized, what is damaged, what ' +
-      'is recoverable. Writes nothing.',
+      'Point it at a directory or a page and get a read-only report: what is oversized, what is ' +
+      'damaged, what is recoverable. Writes nothing. The hosted version is still to come.',
   },
   {
     id: 'M5',
     name: 'Allocator',
-    status: { className: 'badge badge--next', label: 'next' },
-    body: 'The page-level budget solver, wired into the audit output as a recommended plan.',
+    status: { className: 'badge badge--now', label: 'math done' },
+    body:
+      'The page-level budget solver. Built and tested in the core library; nothing calls it with ' +
+      'a real page budget yet.',
   },
   {
     id: 'M6',
     name: 'Writer and receipts',
-    status: { className: 'badge badge--next', label: 'next' },
+    status: { className: 'badge badge--done', label: 'done' },
     body:
-      'The only milestone that writes files. Git-clean guard, atomic writes, a receipt for ' +
-      'every change, and a browser page to verify any receipt.',
+      'The only milestone that writes files. Git-clean guard, atomic writes, originals preserved, ' +
+      'a receipt for every change, and a browser page that verifies any receipt.',
   },
   {
     id: 'M7',
     name: 'Source recovery',
-    status: { className: 'badge badge--next', label: 'next' },
+    status: { className: 'badge badge--now', label: 'library done' },
     body:
       'Find the better original your pipeline buried: CMS size suffixes, retina siblings, git ' +
-      'history.',
+      'history. Seven recoverers exist and are tested; the writer does not call them yet.',
   },
   {
     id: 'M8',
@@ -162,9 +194,10 @@ export default function Home() {
           <p className="eyebrow eyebrow--accent">Open source image toolchain</p>
           <h1 className="hero__title">Assay before you compress.</h1>
           <p className="hero__lede">
-            cupel measures the quality a source image actually has left, spends a page’s byte budget
-            only where it buys visible fidelity, and keeps a receipt for every decision. The
-            measurement layer ships today; the rest is built in the open, in the order listed below.
+            cupel measures the quality a source image actually has left, refuses to re-encode what
+            has none, and keeps a receipt anyone can recheck for every decision it makes. Four
+            commands ship today. The page-level byte budget and source recovery are built but not
+            yet wired in, and the roadmap below says so plainly.
           </p>
           <div className="hero__actions">
             <Link className="btn btn--primary" href="/docs/getting-started">
@@ -224,6 +257,39 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="run-heading">
+        <div className="shell">
+          <p className="eyebrow">One real run</p>
+          <h2 className="section__title" id="run-heading">
+            What it looks like when it refuses.
+          </h2>
+          <p className="section__lede">
+            Five specimens, generated from a seed so you can reproduce them. Two are refused because
+            nothing is left to spend, one vector is reported and left untouched, and two are
+            re-encoded. No file was modified: writing takes a second flag.
+          </p>
+          <div className="transcript">
+            <pre>
+              <code>
+                {TRANSCRIPT_LINES.map((line, i) => (
+                  <span key={i}>
+                    {line.kind === undefined ? (
+                      line.text
+                    ) : (
+                      <span className={`transcript__${line.kind}`}>{line.text}</span>
+                    )}
+                    {'\n'}
+                  </span>
+                ))}
+              </code>
+            </pre>
+            <p className="transcript__caption">
+              Captured from cupel write on generated specimens. Columns trimmed to fit.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -316,9 +382,10 @@ export default function Home() {
             ))}
           </ol>
           <p className="section__note">
-            The four-part pitch at the top of this page is fully true only once M7 lands. Until
-            then, this page describes what exists and keeps the promises here, in the roadmap, where
-            they belong.
+            The four-part pitch at the top of this page is fully true only once the allocator and
+            source recovery are wired into the writer. Both are built and tested; neither is called
+            yet. Until then this page describes what exists and keeps the promises here, in the
+            roadmap, where they belong.
           </p>
         </div>
       </section>
