@@ -2,6 +2,17 @@
   "name": "@cupel/corpus",
   "version": "0.0.0",
   "private": true,
-  "description": "Dataset manifest, runner, and scoring. Stub until milestone M8. Corpus images are CC BY 4.0, see LICENSE-CORPUS.",
-  "license": "Apache-2.0"
+  "description": "Dataset manifest, runner, and scoring. Contracts in place; implementation lands in milestone M8. Corpus images are CC BY 4.0, see LICENSE-CORPUS.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
 }

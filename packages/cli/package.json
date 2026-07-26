@@ -1,7 +1,32 @@
 {
   "name": "@cupel/cli",
   "version": "0.0.0",
-  "private": true,
-  "description": "The cupel command line. Stub until milestone M3 (inspect) and M4 (audit).",
-  "license": "Apache-2.0"
+  "description": "The cupel command line: inspect, audit, verify, and, only behind an explicit flag, write.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "cupel": "./bin/cupel.js"
+  },
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cupel/codecs-node": "workspace:*",
+    "@cupel/core": "workspace:*",
+    "@cupel/crawl": "workspace:*",
+    "@cupel/recover": "workspace:*",
+    "commander": "^13.0.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
 }

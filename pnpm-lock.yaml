@@ -55,7 +55,36 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
-  packages/cli: {}
+  packages/cli:
+    dependencies:
+      '@cupel/codecs-node':
+        specifier: workspace:*
+        version: link:../codecs-node
+      '@cupel/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cupel/crawl':
+        specifier: workspace:*
+        version: link:../crawl
+      '@cupel/recover':
+        specifier: workspace:*
+        version: link:../recover
+      commander:
+        specifier: ^13.0.0
+        version: 13.1.0
+      picocolors:
+        specifier: ^1.1.0
+        version: 1.1.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.1)
 
   packages/codecs-node:
     dependencies:
@@ -113,11 +142,31 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.1)
 
-  packages/corpus: {}
+  packages/corpus:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
-  packages/crawl: {}
+  packages/crawl:
+    dependencies:
+      '@cupel/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
-  packages/recover: {}
+  packages/recover:
+    dependencies:
+      '@cupel/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
   packages/skill: {}
 
@@ -1030,6 +1079,10 @@ packages:
 
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+
+  commander@13.1.0:
+    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
+    engines: {node: '>=18'}
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
@@ -2564,6 +2617,8 @@ snapshots:
       color-name: 1.1.4
 
   color-name@1.1.4: {}
+
+  commander@13.1.0: {}
 
   concat-map@0.0.1: {}
 
