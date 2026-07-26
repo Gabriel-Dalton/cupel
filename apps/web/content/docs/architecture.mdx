@@ -1,0 +1,82 @@
+# Architecture
+
+One structural decision carries the whole project: the measurement core is platform neutral, and
+codecs are injected. Everything else follows from it.
+
+## Core isolation
+
+`@cupel/core` has zero platform dependencies. No `fs`, no `node:` imports, no `Buffer`, no
+`sharp`, no DOM. It operates on decoded pixels and plain numbers:
+
+```ts
+type RawImage = {
+  width: number
+  height: number
+  data: Uint8ClampedArray // RGBA, 4 bytes per pixel, non-premultiplied
+}
+```
+
+This is enforced mechanically, not by convention:
+
+- An ESLint rule fails CI if any file under `packages/core/src` imports a Node builtin (in
+  either `node:` or bare form), `sharp`, or any `@jsquash/*` package, or references `Buffer`,
+  `process`, `__dirname`, `__filename`, or `require`.
+- Core's tsconfig includes no Node and no DOM type libraries, so platform APIs do not even
+  typecheck.
+
+Why it matters: the exact same SSIM implementation runs in Node, in CI, and in your browser.
+When the playground lands, a number computed on your machine, from your image, is produced by
+the same code that produced the published numbers. That is what makes the numbers checkable
+rather than takeable on faith, and it is the single most important structural decision in the
+project.
+
+## Codec injection: the Encoder interface
+
+Core never encodes or decodes a file. Anything that does implements one interface:
+
+```ts
+interface Encoder {
+  id: string
+  format: OutputFormat
+  version(): Promise<string>
+  supportsAlpha: boolean
+  capabilities: {
+    qualityRange: [number, number] // [0, 0] for lossless-only formats
+    lossless: boolean
+  }
+  encode(img: RawImage, opts: EncodeOptions): Promise<Uint8Array>
+  decode(bytes: Uint8Array): Promise<RawImage>
+}
+```
+
+Two adapters exist today:
+
+- **`@cupel/codecs-node`** wraps sharp. `sharpCodec('jpeg' | 'png' | 'webp' | 'avif')` returns
+  an `Encoder`.
+- **`@cupel/codecs-wasm`** wraps the jSquash WASM codecs behind the identical signature,
+  `wasmCodec(format)`. The builds are single-threaded, so no COOP/COEP headers are required to
+  run them in a browser.
+
+A parity test runs identical `RawImage` inputs through both adapters, decodes the results, and
+asserts the SSIM values agree to within 1e-6. If the two ever drift, CI fails loudly, because a
+browser demo that disagrees with the CLI would be worse than no demo.
+
+## Package responsibilities
+
+| Package              | Owns                                   | Never touches                    |
+| -------------------- | -------------------------------------- | -------------------------------- |
+| `@cupel/core`        | all math, all decisions, ledger schema | filesystem, network, codecs      |
+| `@cupel/codecs-node` | sharp                                  | decisions                        |
+| `@cupel/codecs-wasm` | jSquash WASM codecs                    | decisions, filesystem            |
+| `apps/web`           | this site                              | measurement math (it imports it) |
+
+Packages for the CLI, crawler, source recovery, corpus, and Claude Code skill exist as stubs
+with a README only. They gain source when their milestone arrives, not before.
+
+## Where decisions will live
+
+Core already exports the type contracts for the layers that are still being built: candidate
+points and allocation options for the rate-distortion solver, the `ProvenanceRecord` produced by
+file history analysis, and the `LedgerEntryV1` receipt schema. Publishing the types first is
+deliberate: the interfaces are reviewable before the implementations exist, and the
+implementations must fit them rather than grow ad hoc.

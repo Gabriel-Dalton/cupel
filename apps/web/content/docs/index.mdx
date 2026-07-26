@@ -1,0 +1,49 @@
+# Overview
+
+cupel is an open source image toolchain built around one rule: measure before you touch
+anything. It works out how much quality a source image actually has left, and it is being
+extended, milestone by milestone, into a tool that spends a page-level byte budget only where it
+buys visible fidelity and records a receipt for every decision.
+
+This documentation describes the repository as it exists today. Anything that has not shipped is
+labelled as roadmap, and lives on the [roadmap page](/docs/roadmap).
+
+## Two behaviours that will never be dropped
+
+1. **cupel refuses to re-encode a source with no quality headroom left.** A file that prior
+   compression has already spent gets flagged and kept. Refusal is a first class output, not a
+   failure state.
+2. **cupel never writes anything without an explicit flag.** Every run is read-only by default.
+   There is no configuration in which it silently replaces files.
+
+These two constraints predate every feature and outrank all of them. Milestones are designed
+around them, not the other way round.
+
+## What ships today
+
+- **`@cupel/core`**: the measurement layer. Five metrics (windowed grayscale SSIM, CIE76 deltaE,
+  tiled Laplacian sharpness, 8x8 block boundary energy, radially averaged power spectrum with
+  effective resolution estimation) with zero platform dependencies. See [Metrics](/docs/metrics).
+- **`@cupel/codecs-node`** and **`@cupel/codecs-wasm`**: two codec adapters behind one `Encoder`
+  interface, held to agreement within 1e-6 by a parity test. See
+  [Architecture](/docs/architecture).
+- **This site**, whose landing page runs the real `@cupel/core` code at build time to produce
+  the numbers it shows.
+
+What does not exist yet: provenance analysis, the auditor, the allocator, the writer, source
+recovery, receipts. The docs will grow as those land, not before.
+
+## Where the name comes from
+
+A cupel is the small porous vessel used in fire assay, the reference method for determining how
+much precious metal a sample really contains. The assayer does not guess and does not average:
+the sample is measured, and the measurement is the verdict. That is the stance of this project:
+an image is a sample to be measured, not just a file to be shrunk. This aside is the only place
+the metaphor lives; everything else in these docs is arithmetic.
+
+## Reading order
+
+1. [Getting started](/docs/getting-started): run the tests and take a first measurement.
+2. [Architecture](/docs/architecture): the one structural rule that everything depends on.
+3. [Metrics](/docs/metrics): what each measurement computes and where it is blind.
+4. [Roadmap](/docs/roadmap): what is promised, in what order, and what "done" means.

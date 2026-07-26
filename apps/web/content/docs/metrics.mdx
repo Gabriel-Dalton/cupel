@@ -1,0 +1,97 @@
+# Metrics
+
+Five measurements ship in `@cupel/core/src/metrics`. This page gives each one its proper name,
+states what it computes, why it exists, and where it is blind. The landing page refers to them
+in plain words; the mapping is noted per metric.
+
+Every claim below is pinned by the core test suite. Where a limit or regime is described, there
+is a test that exercises it.
+
+## SSIM: windowed grayscale structural similarity
+
+Landing page name: structural survival.
+
+`ssim(a, b)` computes structural similarity over 8x8 windows on the Rec. 601 grayscale plane of
+two images with identical dimensions, returning a single score where 1 means structurally
+identical.
+
+Contracts held by tests:
+
+- An image against itself scores exactly 1.0, not 0.9999999.
+- The measure is symmetric: `ssim(a, b) === ssim(b, a)`.
+- Against progressively stronger blur, the score decreases monotonically.
+
+Blind spot: SSIM here is computed on grayscale. A change that moves colour while preserving
+luma, which is precisely what aggressive chroma subsampling does, can leave SSIM at 1.0. That
+blindness is not fixed inside SSIM; it is covered by the next metric.
+
+## CIE76 deltaE: perceptual colour distance
+
+Landing page name: colour drift.
+
+`deltaE(a, b)` converts both images from sRGB through linear RGB and XYZ (D65 white point) to
+Lab, computes the CIE76 distance per pixel, and returns both the mean and the 95th percentile.
+The p95 matters because localized colour damage disappears into a mean.
+
+The justification test, kept explicit in the suite because it is the entire reason the metric
+exists: construct two images whose Rec. 601 luma is equal pixel for pixel but whose hue differs.
+Grayscale SSIM scores the pair above 0.999; deltaE reports a large distance. Roughly 2.3 CIE76
+units is the conventional just noticeable difference.
+
+## Tiled Laplacian sharpness
+
+Landing page name: detail.
+
+`laplacianSharpness(img)` normalizes the image so its long edge is at most 1024 (never
+upscaling), converts to grayscale, applies a 3x3 Laplacian, and computes the response variance
+per 64-pixel tile. It reports the 95th percentile across tiles rather than the mean: one sharp
+region proves the source is sharp even when most of the frame is bokeh. Edge slivers thinner
+than 16 pixels are skipped as statistically untrustworthy.
+
+Comparability regime, stated plainly: because normalization never upscales, p95 values are
+strictly comparable only among images whose long edge is at least 1024. Smaller images are
+measured at native scale, where absolute numbers run higher. Detecting that a large image was
+upscaled is not this metric's job; that belongs to effective resolution below.
+
+## Blocking: 8x8 boundary energy ratio
+
+Landing page name: seam energy.
+
+`blockingScore(img)` measures mean absolute luma gradient at pixel positions falling on 8x8
+block boundaries and divides it by the same measure at interior positions, separately for
+horizontal and vertical, plus a combined score. A ratio meaningfully above 1.0 indicates
+block-based compression in the file's history.
+
+The important use case is laundered files: a JPEG re-saved as PNG or lossless WebP keeps its 8x8
+seams. The container says lossless; the seams say otherwise, and the bytes are being spent on
+damage. Degenerate inputs are defined, not accidental: a perfectly flat image carries no
+evidence either way and scores exactly 1.0 (neutral), and axes shorter than 17 pixels are
+reported as neutral because the boundary/interior split is not meaningful there.
+
+## Radially averaged power spectrum and effective resolution
+
+Landing page name: real resolution.
+
+`radialPowerSpectrum(img)` computes the FFT power spectrum on a square analysis plane (256, 512,
+or 1024, adapted to the image's long edge) and averages it radially. `effectiveResolution(img)`
+finds where spectral energy drops below a noise floor and converts that cutoff into an implied
+pixel dimension.
+
+A native image has a cutoff ratio near 1.0. An image upscaled 2x rolls off near 0.5: the extra
+pixels carry no new frequency content, and the test suite pins that a 2x-upscaled image measures
+approximately half its declared dimensions.
+
+Read the result carefully, because the type is designed to prevent a specific misreading. For
+images larger than the analysis plane, the measurement can only certify detail up to the plane
+size, reported as `certifiedUpTo`. When `effective` equals `certifiedUpTo` and both are below
+`declared`, the image carries at least that much real detail and possibly more. It must not be
+read as upscaled.
+
+## How the five compose
+
+No single number is trusted alone, because each has a documented blind spot: SSIM misses colour,
+deltaE says nothing about sharpness, Laplacian variance cannot see upscaling above its
+normalized scale, blocking is silent on blur, and the spectrum is silent on colour. Together
+they cover each other, which is why the provenance layer (M3 on the [roadmap](/docs/roadmap))
+consumes all five when it assembles its evidence, and why the landing page demonstrates each one
+against a specimen designed to fool the others.

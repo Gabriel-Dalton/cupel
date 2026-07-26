@@ -1,0 +1,79 @@
+# Roadmap
+
+cupel is built milestone by milestone, in public, and each milestone is independently useful.
+This page is where promises live; the rest of the site describes only what exists. "Done" means
+merged with tests, not demoed.
+
+## Done
+
+### M0: Skeleton
+
+Monorepo, CI on Node 20 and 22, licenses (Apache-2.0 for code, CC BY 4.0 reserved for the
+corpus), and both codec adapters behind the shared `Encoder` interface with the parity test
+between them. The deploy pipeline was proven with a placeholder page before any feature existed.
+
+### M1: Metrics
+
+The five measurements documented in [Metrics](/docs/metrics), with the test suite that pins
+their contracts: exact identity for SSIM, symmetry, monotonicity under blur, the deltaE
+justification test, blocking on synthetic block damage, and effective resolution on a known 2x
+upscale.
+
+## In progress
+
+### M2: Site and playground
+
+This site: landing page whose numbers are computed by the shipped code at build time, these
+docs, and next an in-browser playground that runs a full quality sweep over the WASM codecs with
+a live rate-distortion curve. The image never leaves the browser.
+
+## Next, in order
+
+### M3: Provenance
+
+Read a file's compression history from its own bytes: quality estimation from JPEG quantization
+tables, encoder fingerprinting, double-quantization (generation) detection, and effective
+resolution, combined into a `ProvenanceRecord` with a headroom verdict and human-readable
+evidence. Headroom is what powers refusal. Double-quantization detection is established
+forensics but genuinely noisy; it will be presented as evidence with confidence, never as a
+verdict on its own.
+
+### M4: Auditor
+
+Crawl a page, classify its images, and report: total image weight, estimated recoverable bytes,
+generation damage, laundered files, upscales. Strictly read-only. Ships locally first; the
+hosted version does not ship until its abuse hardening (SSRF checks after every redirect, byte
+caps, rate limits, crawler citizenship) is implemented and tested, without exceptions.
+
+### M5: Allocator
+
+The page-level rate-distortion solver: per-image quality ladders produce (bytes, distortion)
+curves, lower convex hull pruning discards dominated points, and a Lagrangian sweep spends one
+byte budget across all images weighted by display size and role. Correctness is pinned by a
+property test: hull pruning plus lambda selection must match exhaustive search over the unpruned
+candidate set.
+
+### M6: Writer and receipts
+
+The only milestone that writes files, and therefore the most guarded: a git-clean guard and
+dry-run default exist before any write path does. Atomic writes, a `LedgerEntryV1` receipt for
+every change, `cupel verify` to recompute any receipt, and a browser verify page so a fidelity
+claim can be falsified in thirty seconds by anyone.
+
+### M7: Source recovery
+
+Find the better original that a pipeline buried: CMS size-suffix patterns, image optimizer URL
+inversion, srcset and retina siblings, git history. A proposed source is accepted only if it
+measurably improves on the current one; every accepted swap is recorded in the receipt.
+
+### M8: Corpus, action, skill
+
+A public benchmark corpus (CC BY 4.0) with a leaderboard rebuilt on schedule, a GitHub Action,
+and a Claude Code skill.
+
+## A note on the pitch
+
+The four-part sentence on the landing page (measure, prove, allocate, receipt) is fully true
+only after M7 lands. Until then it is a design, not a claim, and the landing page labels each
+step with its real status. Shipping copy that promises four things while two exist would cost
+exactly the audience this tool is for.

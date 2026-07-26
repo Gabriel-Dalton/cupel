@@ -1,0 +1,88 @@
+# Getting started
+
+cupel is pre-release. The packages are not on npm yet, there is no CLI yet, and this page will
+not pretend otherwise. What you can do today is clone the repository, run the full test suite,
+and use the measurement layer as a library inside the workspace.
+
+## Requirements
+
+- Node.js 20 or newer
+- pnpm 10
+
+## Clone and verify
+
+```bash
+git clone https://github.com/Gabriel-Dalton/cupel.git
+cd cupel
+pnpm install
+pnpm test        # unit tests across the workspace, including codec parity
+pnpm typecheck
+pnpm lint
+pnpm build
+```
+
+The test suite is the contract. If it is green, every number described in
+[Metrics](/docs/metrics) behaves as documented on your machine, in your Node version.
+
+## The shape everything operates on
+
+`@cupel/core` never touches files, network, or codecs. Every function takes decoded pixels:
+
+```ts
+type RawImage = {
+  width: number
+  height: number
+  data: Uint8ClampedArray // RGBA, 4 bytes per pixel, non-premultiplied
+}
+```
+
+How you obtain a `RawImage` is your platform's business. Inside this repo, the codec adapters do
+it for you (see below).
+
+## A first measurement
+
+From a package inside the workspace, depend on `@cupel/core` via
+`"@cupel/core": "workspace:*"` and call the metrics directly:
+
+```ts
+import { ssim, deltaE, laplacianSharpness, blockingScore, effectiveResolution } from '@cupel/core'
+
+// reference and candidate are RawImages of identical dimensions.
+const structure = ssim(reference, candidate) // 1 means identical structure
+const colour = deltaE(reference, candidate) // { mean, p95 } in CIE76 units
+
+// Single-image measurements need no reference.
+const sharpness = laplacianSharpness(candidate) // { p95, tilesEvaluated }
+const seams = blockingScore(candidate) // { horizontal, vertical, combined }
+const resolution = effectiveResolution(candidate) // declared vs measured pixels
+```
+
+## Decoding real files
+
+Codecs live outside core, behind the `Encoder` interface. In Node, wrap
+[sharp](https://sharp.pixelplumbing.com):
+
+```ts
+import { sharpCodec } from '@cupel/codecs-node'
+
+const jpeg = sharpCodec('jpeg')
+const img = await jpeg.decode(bytes) // Uint8Array in, RawImage out
+```
+
+In the browser (or anywhere WASM runs), the same interface is implemented by
+`@cupel/codecs-wasm` over the jSquash codecs:
+
+```ts
+import { wasmCodec } from '@cupel/codecs-wasm'
+
+const webp = wasmCodec('webp')
+const img = await webp.decode(bytes)
+```
+
+A parity test in CI runs identical inputs through both adapters and asserts the resulting SSIM
+values agree to within 1e-6. The number you compute in a browser is the number CI computed.
+
+## What you cannot do yet
+
+There is no `cupel` command, no audit, no allocation, and no write path of any kind. Those land
+in the order given on the [roadmap](/docs/roadmap), and each arrives with its tests.

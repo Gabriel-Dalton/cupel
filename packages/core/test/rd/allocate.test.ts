@@ -274,3 +274,296 @@ describe('allocate: input validation and determinism', () => {
     expect(second).toEqual(first)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Brute force equivalence. Small seeded random instances (5 images x 6
+// candidates) are solved twice: by allocate (hulls, breakpoint bisection) and
+// by exhaustive search that never prunes anything. Every quantity lands on an
+// exact binary grid (bytes: integers, distortion: multiples of 1/64, weight:
+// multiples of 1/8), so distortion sums and byte totals are exact IEEE754
+// doubles and every assertion below is exact equality, no tolerances.
+//
+// Semantics note, load-bearing: budget mode is Lagrangian step-down (see the
+// budget-mode suite above: at budget 400 the expected answer is the 300 byte
+// allocation, not the 400 byte combination with lower distortion). A uniform
+// lambda cannot land inside the integrality gap, so the honest brute force
+// checks are (a) per-image selection must match exhaustive argmin over ALL
+// unpruned candidates at the resolved lambda, (b) the full budget-mode result
+// must match a hull-free reference that sweeps every pairwise rate, and
+// (c) the achieved allocation must be knapsack-optimal over ALL unpruned
+// candidate combinations within its own byte total, which is the exact
+// optimality guarantee Lagrangian allocation provides.
+// ---------------------------------------------------------------------------
+
+describe('allocate: brute force equivalence on seeded random instances', () => {
+  /** Small, fast, seeded PRNG. Deterministic across platforms. */
+  function mulberry32(seed: number): () => number {
+    let a = seed >>> 0
+    return () => {
+      a += 0x6d2b79f5
+      let t = a
+      t = Math.imul(t ^ (t >>> 15), t | 1)
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+  }
+
+  const IMAGES = 5
+  const CANDIDATES = 6
+
+  function randomInstance(seed: number): AllocationImage[] {
+    const rand = mulberry32(seed)
+    const images: AllocationImage[] = []
+    for (let i = 0; i < IMAGES; i++) {
+      const candidates: CandidatePoint[] = []
+      for (let c = 0; c < CANDIDATES; c++) {
+        // Bytes are multiples of 25 so duplicates and shared totals occur;
+        // distortion sits on the 1/64 grid so exact ties occur.
+        candidates.push(pt(25 * (1 + Math.floor(rand() * 40)), Math.floor(rand() * 64) / 64))
+      }
+      // Occasionally a zero weight image; otherwise 1/8 .. 23/8.
+      const weight = i === 0 && rand() < 0.25 ? 0 : Math.floor(1 + rand() * 23) / 8
+      images.push(img(`img${i}`, weight, candidates))
+    }
+    return images
+  }
+
+  /**
+   * Exhaustive per-image argmin over ALL unpruned candidates, scanning bytes
+   * ascending (then distortion ascending) with a strictly-smaller test, so
+   * ties resolve toward fewer bytes exactly like the allocator documents.
+   *
+   * Floating point caveat: within a rounding error of a true crossing, these
+   * computed scores resolve unpredictably, so this reference is only used at
+   * SAFE lambdas: 0 (scores are exact on this suite's value grid) and points
+   * far from every crossing relative to double precision. The behavior
+   * exactly at the crossings is pinned separately by the right-continuity
+   * check below plus the committed exact-tie test above.
+   */
+  function refChoice(image: AllocationImage, lambda: number): CandidatePoint {
+    const sorted = [...image.hull].sort((a, b) => a.bytes - b.bytes || a.distortion - b.distortion)
+    let chosen = sorted[0] as CandidatePoint
+    let chosenScore = image.weight * chosen.distortion + lambda * chosen.bytes
+    for (const p of sorted) {
+      const score = image.weight * p.distortion + lambda * p.bytes
+      if (score < chosenScore) {
+        chosen = p
+        chosenScore = score
+      }
+    }
+    return chosen
+  }
+
+  type RefResult = {
+    lambda: number
+    choices: CandidatePoint[]
+    totalBytes: number
+    totalDistortion: number
+  }
+
+  function refEvaluate(images: readonly AllocationImage[], lambda: number): RefResult {
+    const choices = images.map((image) => refChoice(image, lambda))
+    let totalBytes = 0
+    let totalDistortion = 0
+    for (let i = 0; i < images.length; i++) {
+      const chosen = choices[i] as CandidatePoint
+      totalBytes += chosen.bytes
+      totalDistortion += (images[i] as AllocationImage).weight * chosen.distortion
+    }
+    return { lambda, choices, totalBytes, totalDistortion }
+  }
+
+  /**
+   * Every lambda at which any image's exhaustive argmin can change: the
+   * pairwise weighted rates of ALL candidate pairs, no hull involved. The
+   * expression shape matches what a caller would derive from two points, so
+   * matching lambdas compare bit-identically.
+   */
+  function refRates(images: readonly AllocationImage[]): number[] {
+    const set = new Set<number>()
+    for (const image of images) {
+      for (const low of image.hull) {
+        for (const high of image.hull) {
+          if (high.bytes > low.bytes && low.distortion > high.distortion) {
+            set.add((image.weight * (low.distortion - high.distortion)) / (high.bytes - low.bytes))
+          }
+        }
+      }
+    }
+    return [...set].filter((r) => r > 0).sort((a, b) => b - a)
+  }
+
+  /**
+   * A safe evaluation lambda strictly inside candidate rates[k]'s constancy
+   * interval [rates[k], rates[k - 1]): the allocation is constant there and
+   * the point sits far from every crossing, so refChoice is exact at it.
+   */
+  function safeAbove(rates: readonly number[], k: number): number {
+    const rate = rates[k] as number
+    return k === 0 ? rate * 2 + 1 : rate + ((rates[k - 1] as number) - rate) / 2
+  }
+
+  /**
+   * Every candidate lambda with the allocation it produces, descending, with
+   * lambda 0 last. The allocation AT a candidate equals the allocation on
+   * the interval just above it (the fewer-bytes tie: the crossing upgrade is
+   * not bought), so each is evaluated at safeAbove rather than at itself.
+   */
+  function refCandidates(images: readonly AllocationImage[]): RefResult[] {
+    const rates = refRates(images)
+    const candidates = rates.map((rate, k) => ({
+      ...refEvaluate(images, safeAbove(rates, k)),
+      lambda: rate,
+    }))
+    candidates.push(refEvaluate(images, 0))
+    return candidates
+  }
+
+  /**
+   * Hull-free reference: the smallest sweep lambda whose total fits the
+   * budget. When even the minimum byte total overruns, the documented best
+   * effort is that minimum allocation with the smallest lambda producing it
+   * (rates above the steepest segment yield the same bytes but are not
+   * minimal, so the scan keeps the last, smallest, rate at minimum bytes).
+   */
+  function refAllocate(images: readonly AllocationImage[], budget: number): RefResult {
+    const candidates = refCandidates(images)
+    let best: RefResult | undefined
+    for (const candidate of candidates) {
+      if (candidate.totalBytes <= budget) best = candidate
+    }
+    if (best) return best
+    const minBytes = (candidates[0] as RefResult).totalBytes
+    let fallback = candidates[0] as RefResult
+    for (const candidate of candidates) {
+      if (candidate.totalBytes === minBytes) fallback = candidate
+    }
+    return fallback
+  }
+
+  /** (totalBytes, totalDistortion) of every unpruned candidate combination. */
+  function allCombinations(
+    images: readonly AllocationImage[],
+  ): { totalBytes: number; totalDistortion: number }[] {
+    let combos = [{ totalBytes: 0, totalDistortion: 0 }]
+    for (const image of images) {
+      const next: { totalBytes: number; totalDistortion: number }[] = []
+      for (const partial of combos) {
+        for (const p of image.hull) {
+          next.push({
+            totalBytes: partial.totalBytes + p.bytes,
+            totalDistortion: partial.totalDistortion + image.weight * p.distortion,
+          })
+        }
+      }
+      combos = next
+    }
+    return combos
+  }
+
+  function sampleBudgets(images: readonly AllocationImage[], rand: () => number): number[] {
+    // 1e12 dwarfs every weighted distortion here, so this is the minimum
+    // byte allocation without risking Infinity scores.
+    const minTotal = refEvaluate(images, 1e12).totalBytes
+    const maxTotal = refEvaluate(images, 0).totalBytes
+    const budgets = [minTotal - 1, minTotal, maxTotal, maxTotal + 123, 1e9]
+    for (const candidate of refCandidates(images)) {
+      budgets.push(candidate.totalBytes, candidate.totalBytes - 1, candidate.totalBytes + 1)
+    }
+    for (let i = 0; i < 3; i++) {
+      budgets.push(minTotal + Math.floor(rand() * (maxTotal - minTotal + 1)))
+    }
+    return [...new Set(budgets)].filter((b) => b >= 0)
+  }
+
+  it('lambda mode matches exhaustive argmin over all unpruned candidates', () => {
+    const rand = mulberry32(0x5eed_0001)
+    for (let trial = 0; trial < 12; trial++) {
+      const images = randomInstance(1000 + trial)
+      const rates = refRates(images)
+      // Sweep 0, a safe point inside every constancy interval, and a few
+      // arbitrary lambdas.
+      const lambdas = [0, rand() * 0.02, rand() * 0.002, 1e6]
+      for (let k = 0; k < rates.length; k++) lambdas.push(safeAbove(rates, k))
+      for (const lambda of lambdas) {
+        const res = allocate(images, { lambda })
+        for (const image of images) {
+          const expected = refChoice(image, lambda)
+          const actual = res.choices.get(image.id)
+          const label = `trial ${trial}, lambda ${lambda}, ${image.id}`
+          expect(actual?.bytes, `${label}: bytes`).toBe(expected.bytes)
+          expect(actual?.distortion, `${label}: distortion`).toBe(expected.distortion)
+        }
+      }
+    }
+  })
+
+  it('lambda mode is right-continuous: at a crossing the upgrade is not bought', () => {
+    for (let trial = 0; trial < 12; trial++) {
+      const images = randomInstance(1000 + trial)
+      const rates = refRates(images)
+      for (let k = 0; k < rates.length; k++) {
+        // The allocation exactly AT a marginal rate must equal the
+        // allocation just above it: the fewer-bytes side of the tie.
+        const atRate = allocate(images, { lambda: rates[k] as number })
+        const justAbove = allocate(images, { lambda: safeAbove(rates, k) })
+        expect(atRate.choices, `trial ${trial}, rate ${rates[k]}`).toEqual(justAbove.choices)
+      }
+    }
+  })
+
+  it('budget mode matches the hull-free exhaustive rate sweep exactly', () => {
+    const rand = mulberry32(0x5eed_0002)
+    for (let trial = 0; trial < 12; trial++) {
+      const images = randomInstance(2000 + trial)
+      for (const budget of sampleBudgets(images, rand)) {
+        const res = allocate(images, { budgetBytes: budget })
+        const ref = refAllocate(images, budget)
+        const label = `trial ${trial}, budget ${budget}`
+        expect(res.lambda, `${label}: lambda`).toBe(ref.lambda)
+        expect(res.totalBytes, `${label}: totalBytes`).toBe(ref.totalBytes)
+        expect(res.totalDistortion, `${label}: totalDistortion`).toBe(ref.totalDistortion)
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i] as AllocationImage
+          const expected = ref.choices[i] as CandidatePoint
+          const actual = res.choices.get(image.id)
+          expect(actual?.bytes, `${label}, ${image.id}: bytes`).toBe(expected.bytes)
+          expect(actual?.distortion, `${label}, ${image.id}: distortion`).toBe(expected.distortion)
+        }
+        // The resolved lambda must reproduce the identical result in lambda
+        // mode: budget mode is a search over lambda mode, nothing more.
+        const replay = allocate(images, { lambda: res.lambda })
+        expect(replay.choices, `${label}: replay`).toEqual(res.choices)
+        expect(replay.totalBytes, `${label}: replay bytes`).toBe(res.totalBytes)
+      }
+    }
+  })
+
+  it('budget mode is knapsack-optimal over all combinations within its byte total', () => {
+    const rand = mulberry32(0x5eed_0003)
+    for (let trial = 0; trial < 8; trial++) {
+      const images = randomInstance(3000 + trial)
+      const combos = allCombinations(images)
+      let minTotal = Number.POSITIVE_INFINITY
+      for (const combo of combos) minTotal = Math.min(minTotal, combo.totalBytes)
+      for (const budget of sampleBudgets(images, rand)) {
+        const res = allocate(images, { budgetBytes: budget })
+        const label = `trial ${trial}, budget ${budget}`
+        if (minTotal <= budget) {
+          expect(res.totalBytes, `${label}: within budget`).toBeLessThanOrEqual(budget)
+        } else {
+          // Infeasible: best effort is the minimum byte allocation.
+          expect(res.totalBytes, `${label}: minimum total`).toBe(minTotal)
+        }
+        // No combination of unpruned candidates fitting in the bytes the
+        // allocator actually spent can beat its distortion. Exact comparison:
+        // all values sit on the 1/512 grid.
+        let best = Number.POSITIVE_INFINITY
+        for (const combo of combos) {
+          if (combo.totalBytes <= res.totalBytes) best = Math.min(best, combo.totalDistortion)
+        }
+        expect(res.totalDistortion, `${label}: knapsack optimum`).toBe(best)
+      }
+    }
+  })
+})

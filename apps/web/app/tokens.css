@@ -1,10 +1,10 @@
 /*
  * cupel design tokens.
  *
- * The identity is the instrument, not the theme park: bone ash neutrals
- * (the cupel itself), one molten amber accent (the assay bead), hairline
- * ledger rules, tabular numerals. Dark is the canonical theme; light is a
- * full first class theme, both driven from the same token names.
+ * The identity is the instrument, not the theme park: warm paper neutrals,
+ * one amber accent, hairline ledger rules, tabular numerals. Dark is the
+ * canonical theme; light is a full first class theme, both driven from the
+ * same token names.
  *
  * Every colour, size, and duration used anywhere in the site comes from
  * this file. Components never carry raw values.

@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     template: '%s · cupel',
   },
   description:
-    'An open source image toolchain that treats an image as a sample to be assayed, not just a file to be shrunk. The measurement layer ships today; the rest is being built in the open.',
+    'An open source image toolchain that measures the quality a source image has left, spends a byte budget only where it buys visible fidelity, and refuses to damage what cannot recover. The measurement layer ships today; the rest is built in the open.',
 }
 
 /** The cupel itself: a shallow assay dish holding the recovered bead. */
@@ -77,8 +77,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <footer className="site-footer">
           <div className="shell site-footer__row">
             <p>
-              Code Apache-2.0. The image corpus, when it lands, CC BY 4.0. Pre-release, built in
-              the open.
+              Code Apache-2.0. The image corpus, when it lands, CC BY 4.0. Pre-release, built in the
+              open.
             </p>
             <p>
               <Link href="/docs">Docs</Link> · <Link href="/docs/roadmap">Roadmap</Link> ·{' '}
