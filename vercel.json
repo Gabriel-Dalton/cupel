@@ -3,13 +3,9 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm turbo run build --filter=@cupel/web...",
-  "outputDirectory": "apps/web/.next",
+  "outputDirectory": ".next",
   "ignoreCommand": "npx turbo-ignore @cupel/web",
   "regions": ["iad1"],
-
-  "functions": {
-    "apps/web/app/api/probe/route.ts": { "maxDuration": 15 }
-  },
 
   "headers": [
     {

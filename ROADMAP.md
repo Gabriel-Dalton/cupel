@@ -43,9 +43,9 @@ Both are implemented and tested, not aspirations:
 2. **Hosted `/audit`.** The CLI audit engine is the reference implementation;
    the hosted flavour needs the route, the page, the permalink encoding, and
    the rate limiting composed from `apps/web/lib/net`, which already exists.
-   Restore the `apps/web/app/api/audit/route.ts` entry in `vercel.json` when
-   the route lands: it was removed because declaring a function that does not
-   exist fails the Vercel build.
+   Declare its `maxDuration` with a route segment export, the way
+   `app/api/probe/route.ts` does, rather than in `vercel.json`: see the
+   deployment note below.
 3. **Page-level allocation in the writer.** Give `cupel write` a page context
    (display dimensions from a crawl, above-the-fold estimation) so it can call
    `allocate` with one lambda across all assets instead of deciding each in
@@ -95,6 +95,21 @@ each has a comment at the site of the guess.
   difference changes the hash. This is handled, not ignored: the metrics are
   compared within documented tolerances and the verdict says the reference hash
   differed rather than claiming the file is wrong.
+
+## Deployment notes
+
+The Vercel project's Root Directory is `apps/web`, and **every path in
+`vercel.json` resolves against that**, not against the repository root. Two
+consequences, both learned the hard way:
+
+- `outputDirectory` is `.next`, not `apps/web/.next`. The latter makes Vercel
+  look for `apps/web/apps/web/.next` and fail after a successful build.
+- Per-function settings such as `maxDuration` are declared with route segment
+  exports in the route file itself rather than in a `functions` block. A
+  repo-relative glob there matches nothing, and a `functions` pattern that
+  matches nothing fails the build.
+
+`headers` and `rewrites` are URL paths, so they are unaffected.
 
 ## Packaging notes
 
