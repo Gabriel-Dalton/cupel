@@ -68,6 +68,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <nav className="site-nav" aria-label="Site">
               <NavLink href="/docs">Docs</NavLink>
               <NavLink href="/playground">Playground</NavLink>
+              <NavLink href="/verify">Verify</NavLink>
               <NavLink href="/corpus">Corpus</NavLink>
               <a href="https://github.com/Gabriel-Dalton/cupel">GitHub</a>
             </nav>

@@ -76,3 +76,17 @@ export {
   DEFAULT_AREA_EXPONENT,
 } from './rd/weight.js'
 export { allocate, applyFloor, DEFAULT_FLOORS } from './rd/allocate.js'
+
+export {
+  acceptRecoveredSource,
+  decideAsset,
+  LOW_HEADROOM_SSIM_MARGIN,
+  NO_OP_MIN_SAVINGS,
+  RECOVERY_TOLERANCE,
+  type AssetClassification,
+  type AssetDecision,
+  type DecideAssetOptions,
+  type SourceAcceptance,
+} from './decide.js'
+
+export { areaAverageResize } from './internal/resample.js'

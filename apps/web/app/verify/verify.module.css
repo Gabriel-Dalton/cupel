@@ -1,0 +1,305 @@
+/*
+ * /verify page styles. Everything rides the design tokens in app/tokens.css;
+ * the two verdict colours are the one addition. --verdict-pass aliases the
+ * existing --ok. --verdict-fail (ember rust, 5.7:1 on the light paper,
+ * 7.2:1 on the dark) does not exist in tokens.css yet, and tokens.css is
+ * outside this page's editable surface this wave, so it is scoped here and
+ * should graduate to tokens.css in a later pass.
+ */
+
+.page {
+  --verdict-pass: var(--ok);
+  --verdict-fail: #a2402c;
+  padding-block: clamp(var(--space-7), 7vw, var(--space-9));
+  display: grid;
+  gap: var(--space-7);
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --verdict-fail: #e08a70;
+  }
+}
+
+.title {
+  font-size: var(--text-2xl);
+  margin-top: var(--space-3);
+  max-width: 24ch;
+}
+
+.lede {
+  max-width: 58ch;
+  margin-top: var(--space-4);
+  font-size: var(--text-md);
+  color: var(--ink-muted);
+}
+
+/* Intake */
+
+.dropzone {
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-2);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-1);
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.dropzoneActive {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.dropzoneHint {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  max-width: 52ch;
+}
+
+.dropzoneHint strong {
+  color: var(--ink);
+  font-weight: var(--weight-semibold);
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.fileLabel {
+  cursor: pointer;
+}
+
+.fileLabel:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-1);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.manifest {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+.manifest div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.manifest dt {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-faint);
+}
+
+.manifest dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.status {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.problem {
+  color: var(--verdict-fail);
+  font-size: var(--text-sm);
+}
+
+/* Report */
+
+.report {
+  margin-top: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.summaryLine {
+  font-size: var(--text-xl);
+  max-width: 40ch;
+}
+
+.summaryFail {
+  color: var(--verdict-fail);
+}
+
+.skips {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.skips summary {
+  cursor: pointer;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-faint);
+}
+
+.skips ul {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+}
+
+.results {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.entry {
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line-strong);
+  border-radius: var(--radius-2);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-1);
+  padding: var(--space-4) var(--space-5);
+}
+
+.entryPass {
+  border-left-color: var(--verdict-pass);
+}
+
+.entryFail {
+  border-left-color: var(--verdict-fail);
+}
+
+.entryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+}
+
+.verdict {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-muted);
+}
+
+.verdictPass {
+  color: var(--verdict-pass);
+}
+
+.verdictFail {
+  color: var(--verdict-fail);
+}
+
+.asset {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-2xs);
+  color: var(--ink-faint);
+}
+
+.tableScroll {
+  margin-top: var(--space-4);
+  overflow-x: auto;
+}
+
+.metrics {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.metrics th,
+.metrics td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.metrics thead th {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-faint);
+}
+
+.metrics tbody th {
+  font-weight: var(--weight-regular);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.metrics tbody th code {
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+}
+
+.metrics td {
+  font-family: var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.rowOver td {
+  color: var(--verdict-fail);
+  font-weight: var(--weight-medium);
+}
+
+.notes {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  max-width: 68ch;
+}
+
+.notes li + li {
+  margin-top: var(--space-1);
+}
+
+.toleranceNote {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  max-width: 62ch;
+}
