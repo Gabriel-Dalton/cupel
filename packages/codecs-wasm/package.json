@@ -1,0 +1,28 @@
+{
+  "name": "@cupel/codecs-wasm",
+  "version": "0.0.0",
+  "description": "jSquash WASM codecs behind the cupel Encoder interface. Browser and edge safe.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cupel/core": "workspace:*",
+    "@jsquash/avif": "^2.0.0",
+    "@jsquash/jpeg": "^1.2.0",
+    "@jsquash/png": "^3.0.0",
+    "@jsquash/webp": "^1.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

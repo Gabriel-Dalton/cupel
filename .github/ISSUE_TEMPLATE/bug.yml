@@ -1,0 +1,25 @@
+name: Bug report
+description: Something is broken or behaves differently than documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you run, what did you expect, what did you get instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Exact commands and, when possible, the input file or a way to synthesize it.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: cupel version, Node version, OS.
+    validations:
+      required: true

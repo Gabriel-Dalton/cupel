@@ -1,0 +1,8 @@
+node_modules
+dist
+.next
+.turbo
+pnpm-lock.yaml
+LICENSE
+LICENSE-CORPUS
+CODE_OF_CONDUCT.md

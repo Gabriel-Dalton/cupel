@@ -1,0 +1,7 @@
+{
+  "name": "@cupel/recover",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Source recoverers: WordPress, Next.js, Shopify, CDNs, srcset, retina siblings, git history. Stub until milestone M7.",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,25 @@
+name: Source recoverer request
+description: Ask for source recovery support for a CMS, CDN, or build tool.
+labels: [recoverer]
+body:
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: The CMS, CDN, or tool that mangles or hides originals.
+    validations:
+      required: true
+  - type: textarea
+    id: pattern
+    attributes:
+      label: URL or path pattern
+      description: |
+        Show a derived asset URL and the corresponding original. Example from
+        WordPress: photo-1024x683.jpg derives from photo.jpg.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Auth requirements, rate limits, quirks.

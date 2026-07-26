@@ -1,0 +1,38 @@
+name: Metric disagreement
+description: The tool reported a quality number that does not match what your eyes see.
+labels: [metric-disagreement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the single most valuable report cupel can receive. Disagreements
+        between the metrics and human perception become corpus entries and make
+        the tool better for everyone.
+  - type: textarea
+    id: claim
+    attributes:
+      label: What the tool claimed
+      description: The reported SSIM, deltaE, or decision, and the ledger entry if you have one.
+    validations:
+      required: true
+  - type: textarea
+    id: perception
+    attributes:
+      label: What you see
+      description: Describe the visible difference. Where in the image, what kind of artifact.
+    validations:
+      required: true
+  - type: textarea
+    id: images
+    attributes:
+      label: Image pair
+      description: Attach or link the source and output images. Confirm you have the right to share them.
+    validations:
+      required: true
+  - type: input
+    id: viewing
+    attributes:
+      label: Viewing conditions
+      description: Display, zoom level, OS scaling, color profile if known.
+    validations:
+      required: true

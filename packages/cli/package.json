@@ -1,0 +1,7 @@
+{
+  "name": "@cupel/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The cupel command line. Stub until milestone M3 (inspect) and M4 (audit).",
+  "license": "Apache-2.0"
+}

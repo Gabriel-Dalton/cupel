@@ -1,6 +1,6 @@
 # cupel
 
-> *Assay before you compress.*
+> _Assay before you compress._
 
 **On the name.** A cupel is the porous bone-ash vessel used in fire assay, the reference method for determining what a sample of ore is actually worth. You melt the sample in it; the base metals oxidize and are absorbed into the vessel walls, leaving behind a bead of pure precious metal whose weight tells you exactly what you had. Fire assay is still the method other methods are checked against.
 
@@ -128,9 +128,13 @@ choice_i(lambda) = argmin over hull points p of  [ w_i * p.distortion + lambda *
 ```ts
 function allocate(
   images: { id: string; weight: number; hull: CandidatePoint[] }[],
-  opts: { budgetBytes?: number; lambda?: number; floors: FloorConfig }
-): { lambda: number; totalBytes: number; totalDistortion: number;
-     choices: Map<string, CandidatePoint> }
+  opts: { budgetBytes?: number; lambda?: number; floors: FloorConfig },
+): {
+  lambda: number
+  totalBytes: number
+  totalDistortion: number
+  choices: Map<string, CandidatePoint>
+}
 ```
 
 **Constraints are applied by filtering hulls before allocation**, not by patching afterward:
@@ -150,16 +154,16 @@ This module produces a `ProvenanceRecord` and never touches the compression deci
 type ProvenanceRecord = {
   container: 'jpeg' | 'png' | 'webp' | 'avif' | 'gif' | 'svg'
   estimatedOriginalQuality: number | null
-  encoderFingerprint: string | null      // 'mozjpeg' | 'adobe-sfw' | 'libjpeg-turbo' | 'apple-isp' | ...
-  generations: number | null             // >=1, from double-quantization analysis
+  encoderFingerprint: string | null // 'mozjpeg' | 'adobe-sfw' | 'libjpeg-turbo' | 'apple-isp' | ...
+  generations: number | null // >=1, from double-quantization analysis
   chromaSubsampling: '4:4:4' | '4:2:2' | '4:2:0' | 'none' | null
   declaredResolution: { w: number; h: number }
   effectiveResolution: { w: number; h: number } | null
   upscaled: boolean
-  blockingScore: number                  // 8x8 boundary energy ratio, 0..1
+  blockingScore: number // 8x8 boundary energy ratio, 0..1
   softness: { p95Laplacian: number; verdict: 'sharp' | 'soft' | 'unknown' }
   headroom: 'normal' | 'low' | 'none'
-  evidence: string[]                     // human-readable reasons, always populated
+  evidence: string[] // human-readable reasons, always populated
 }
 ```
 
@@ -255,8 +259,8 @@ A JSON Lines ledger at `.cupel/ledger.jsonl`, committed to the repo.
   "outputHash": "sha256:...",
   "sourceRecovered": { "from": "public/img/hero-1024x683.jpg", "via": "wordpress" },
   "reference": { "w": 1600, "h": 1067, "hash": "sha256:..." },
-  "decision": "encoded",              // encoded | kept | refused | skipped
-  "reason": null,                     // populated for kept/refused/skipped
+  "decision": "encoded", // encoded | kept | refused | skipped
+  "reason": null, // populated for kept/refused/skipped
   "output": { "format": "avif", "quality": 62, "bytes": 41208 },
   "before": { "format": "jpeg", "bytes": 318442 },
   "metrics": { "ssim": 0.9931, "deltaE": 0.71, "distortion": 0.00844 },
@@ -264,7 +268,7 @@ A JSON Lines ledger at `.cupel/ledger.jsonl`, committed to the repo.
   "lambda": 3.1e-7,
   "provenance": { "generations": 1, "estimatedOriginalQuality": 84, "headroom": "normal" },
   "encoder": "libaom via sharp@0.34.1",
-  "tool": "cupel@0.3.0"
+  "tool": "cupel@0.3.0",
 }
 ```
 
@@ -347,15 +351,15 @@ This is what lets the exact same SSIM implementation run in the CLI, in the brow
 
 ### 8.2 Package responsibilities
 
-| Package | Owns | Never touches |
-|---|---|---|
-| `core` | all math, all decisions, ledger schema | filesystem, network, codecs |
-| `codecs-node` | sharp, avifenc detection and shell-out | decisions |
-| `codecs-wasm` | jSquash WASM codecs | decisions, filesystem |
-| `recover` | proposing better sources | accepting them (core verifies) |
-| `crawl` | HTML/CSS to display dimensions | encoding |
-| `cli` | argv, config resolution, output, git guard | math |
-| `corpus` | fixtures, regression scoring | production code paths |
+| Package       | Owns                                       | Never touches                  |
+| ------------- | ------------------------------------------ | ------------------------------ |
+| `core`        | all math, all decisions, ledger schema     | filesystem, network, codecs    |
+| `codecs-node` | sharp, avifenc detection and shell-out     | decisions                      |
+| `codecs-wasm` | jSquash WASM codecs                        | decisions, filesystem          |
+| `recover`     | proposing better sources                   | accepting them (core verifies) |
+| `crawl`       | HTML/CSS to display dimensions             | encoding                       |
+| `cli`         | argv, config resolution, output, git guard | math                           |
+| `corpus`      | fixtures, regression scoring               | production code paths          |
 
 ## 9. Web app architecture
 
@@ -367,17 +371,17 @@ That constraint is the only carve-out. **Everything else ships on Vercel in v1**
 
 ### 9.1 What ships
 
-| Route | What it does | Where it runs |
-|---|---|---|
-| `/` | Landing. Hero sentence, four-step pipeline, one honest terminal transcript. | Static |
-| `/docs/*` | MDX docs, generated API reference from TSDoc. | Static |
-| `/playground` | Drop an image, full sweep in-browser via jSquash WASM, live RD curve, draggable lambda. The image never leaves the browser. | Client |
-| `/verify` | Paste a ledger entry, drop the source and output files, recompute SSIM and deltaE in-browser, confirm or refute the recorded numbers. | Client |
-| `/audit` + `/audit/[slug]` | URL triage. Enter a site, get a page-level report with a shareable permalink. | Server + static cache |
-| `/corpus` | Public benchmark leaderboard. Encoder configurations scored against the corpus. | Static, rebuilt weekly by cron |
-| `/api/probe` | Single asset metadata probe. Container, dimensions, DQT-derived quality, generations. | Server |
-| `/api/audit` | The triage crawl. | Server |
-| `/api/cron/corpus` | Weekly leaderboard rebuild from the published corpus artifact. | Cron |
+| Route                      | What it does                                                                                                                          | Where it runs                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `/`                        | Landing. Hero sentence, four-step pipeline, one honest terminal transcript.                                                           | Static                         |
+| `/docs/*`                  | MDX docs, generated API reference from TSDoc.                                                                                         | Static                         |
+| `/playground`              | Drop an image, full sweep in-browser via jSquash WASM, live RD curve, draggable lambda. The image never leaves the browser.           | Client                         |
+| `/verify`                  | Paste a ledger entry, drop the source and output files, recompute SSIM and deltaE in-browser, confirm or refute the recorded numbers. | Client                         |
+| `/audit` + `/audit/[slug]` | URL triage. Enter a site, get a page-level report with a shareable permalink.                                                         | Server + static cache          |
+| `/corpus`                  | Public benchmark leaderboard. Encoder configurations scored against the corpus.                                                       | Static, rebuilt weekly by cron |
+| `/api/probe`               | Single asset metadata probe. Container, dimensions, DQT-derived quality, generations.                                                 | Server                         |
+| `/api/audit`               | The triage crawl.                                                                                                                     | Server                         |
+| `/api/cron/corpus`         | Weekly leaderboard rebuild from the published corpus artifact.                                                                        | Cron                           |
 
 `/verify` is worth building even though it is small. It is the only page on the internet where someone can falsify a fidelity claim in thirty seconds, and it makes the receipts pillar concrete rather than aspirational.
 
@@ -426,55 +430,51 @@ Assumes the Vercel project's Root Directory is left at the repo root and the mon
   "functions": {
     "apps/web/app/api/probe/route.ts": { "maxDuration": 15 },
     "apps/web/app/api/audit/route.ts": { "maxDuration": 30 },
-    "apps/web/app/api/cron/corpus/route.ts": { "maxDuration": 300 }
+    "apps/web/app/api/cron/corpus/route.ts": { "maxDuration": 300 },
   },
 
-  "crons": [
-    { "path": "/api/cron/corpus", "schedule": "0 7 * * 1" }
-  ],
+  "crons": [{ "path": "/api/cron/corpus", "schedule": "0 7 * * 1" }],
 
   "headers": [
     {
       "source": "/(.*)\\.wasm",
       "headers": [
         { "key": "Content-Type", "value": "application/wasm" },
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+      ],
     },
     {
       "source": "/playground",
       "headers": [
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
-      ]
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+      ],
     },
     {
       "source": "/corpus/data/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+      ],
     },
     {
       "source": "/audit/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=600" }
-      ]
+        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=600" },
+      ],
     },
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
-      ]
-    }
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+      ],
+    },
   ],
 
-  "rewrites": [
-    { "source": "/install", "destination": "/docs/installation" }
-  ]
+  "rewrites": [{ "source": "/install", "destination": "/docs/installation" }],
 }
 ```
 

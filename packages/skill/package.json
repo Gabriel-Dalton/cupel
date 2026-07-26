@@ -1,0 +1,7 @@
+{
+  "name": "@cupel/skill",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Claude Code skill (SKILL.md plus script). Stub until milestone M8.",
+  "license": "Apache-2.0"
+}
