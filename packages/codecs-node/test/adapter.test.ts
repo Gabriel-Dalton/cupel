@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ENCODER_DEFAULT_QUALITY } from '@cupel/core'
 import type { RawImage } from '@cupel/core'
 import { sharpCodec } from '../src/index.js'
 
@@ -80,6 +81,20 @@ function countMismatches(a: Uint8ClampedArray, b: Uint8ClampedArray): number {
   return mismatches
 }
 
+/** Index of the first differing byte, or -1 when the arrays are identical. */
+function firstByteMismatch(a: Uint8Array, b: Uint8Array): number {
+  const len = Math.min(a.length, b.length)
+  for (let i = 0; i < len; i++) {
+    if ((a[i] ?? 0) !== (b[i] ?? 0)) return i
+  }
+  return a.length === b.length ? -1 : len
+}
+
+function expectSameBytes(a: Uint8Array, b: Uint8Array, label: string): void {
+  expect(a.length, `${label}: byte length`).toBe(b.length)
+  expect(firstByteMismatch(a, b), `${label}: first differing byte index`).toBe(-1)
+}
+
 const FORMATS = ['jpeg', 'png', 'webp', 'avif'] as const
 
 describe('sharpCodec lossless roundtrips', () => {
@@ -153,6 +168,36 @@ describe('sharpCodec lossy size ordering', () => {
   })
 })
 
+describe('sharpCodec default quality', () => {
+  it('jpeg encode with {} is byte identical to the shared default quality', async () => {
+    const codec = sharpCodec('jpeg')
+    const img = noiseImage(48, 48, 21, true)
+    const omitted = await codec.encode(img, {})
+    const explicit = await codec.encode(img, { quality: ENCODER_DEFAULT_QUALITY.jpeg })
+    expect(omitted.length).toBeGreaterThan(0)
+    expectSameBytes(omitted, explicit, 'jpeg omitted vs explicit default')
+  })
+
+  it('webp encode with {} is byte identical to the shared default quality', async () => {
+    const codec = sharpCodec('webp')
+    const img = noiseImage(48, 48, 21, true)
+    const omitted = await codec.encode(img, {})
+    const explicit = await codec.encode(img, { quality: ENCODER_DEFAULT_QUALITY.webp })
+    expect(omitted.length).toBeGreaterThan(0)
+    expectSameBytes(omitted, explicit, 'webp omitted vs explicit default')
+  })
+
+  it('quality NaN falls back to the format default, byte identical', async () => {
+    const img = noiseImage(48, 48, 23, true)
+    for (const format of ['jpeg', 'webp'] as const) {
+      const codec = sharpCodec(format)
+      const fromNaN = await codec.encode(img, { quality: Number.NaN })
+      const fromDefault = await codec.encode(img, { quality: ENCODER_DEFAULT_QUALITY[format] })
+      expectSameBytes(fromNaN, fromDefault, `${format} NaN vs default`)
+    }
+  })
+})
+
 describe('sharpCodec error handling', () => {
   it('decode rejects garbage bytes', async () => {
     const rand = mulberry32(99)
@@ -189,10 +234,11 @@ describe('sharpCodec metadata', () => {
     expect(sharpCodec('avif').supportsAlpha).toBe(true)
   })
 
-  it('lossy formats advertise a [1,100] quality range', () => {
+  it('lossy formats advertise [1,100]; lossless-only png advertises [0,0]', () => {
     expect(sharpCodec('jpeg').capabilities.qualityRange).toEqual([1, 100])
     expect(sharpCodec('webp').capabilities.qualityRange).toEqual([1, 100])
     expect(sharpCodec('avif').capabilities.qualityRange).toEqual([1, 100])
+    expect(sharpCodec('png').capabilities.qualityRange).toEqual([0, 0])
     expect(sharpCodec('jpeg').capabilities.lossless).toBe(false)
     expect(sharpCodec('png').capabilities.lossless).toBe(true)
     expect(sharpCodec('webp').capabilities.lossless).toBe(true)

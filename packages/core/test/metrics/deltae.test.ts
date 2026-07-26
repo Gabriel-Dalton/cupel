@@ -4,18 +4,6 @@ import { ssim } from '../../src/metrics/ssim.js'
 import { toGrayscale } from '../../src/internal/luma.js'
 import { equalLumaPair, makeImage, noiseImage, solid } from '../helpers/fixtures.js'
 
-// ssim is owned by a sibling task and may still be a throwing stub while this
-// suite is written. The ssim assertion below is skipped until it lands, so
-// this suite stays green independently; the luma check proves the same point.
-const ssimReady = (() => {
-  try {
-    ssim(solid(8, 8, [0, 0, 0]), solid(8, 8, [0, 0, 0]))
-    return true
-  } catch {
-    return false
-  }
-})()
-
 describe('deltaE', () => {
   it('is exactly zero for an identical noise image', () => {
     const img = noiseImage(16, 16, 42)
@@ -49,7 +37,7 @@ describe('deltaE', () => {
     expect(deltaE(a, b).mean).toBeGreaterThan(15)
   })
 
-  it.skipIf(!ssimReady)('grayscale ssim is blind to the same pair (justification test)', () => {
+  it('grayscale ssim is blind to the same pair (justification test)', () => {
     const [a, b] = equalLumaPair(32, 32)
     expect(ssim(a, b)).toBeGreaterThan(0.999)
     expect(deltaE(a, b).mean).toBeGreaterThan(15)

@@ -14,7 +14,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { ssim } from '@cupel/core'
+import { ENCODER_DEFAULT_QUALITY, ssim } from '@cupel/core'
 import type { Encoder, RawImage } from '@cupel/core'
 import { sharpCodec, type CodecFormat } from '../src/index.js'
 
@@ -257,6 +257,55 @@ async function bothCodecs(format: CodecFormat): Promise<[Side, Side]> {
     { name: 'wasm', codec: await wasmCodecFor(format) },
   ]
 }
+
+// ---------------------------------------------------------------------------
+// Capability parity: the two adapters must describe each format identically,
+// or callers choosing a codec by capabilities get different behavior per
+// platform.
+// ---------------------------------------------------------------------------
+
+describe('adapter parity: capabilities', () => {
+  it('both adapters report identical supportsAlpha, lossless, and qualityRange', async () => {
+    for (const format of ['jpeg', 'png', 'webp', 'avif'] as const) {
+      const [nodeSide, wasmSide] = await bothCodecs(format)
+      expect(wasmSide.codec.supportsAlpha, `${format}: supportsAlpha`).toBe(
+        nodeSide.codec.supportsAlpha,
+      )
+      expect(wasmSide.codec.capabilities.lossless, `${format}: lossless`).toBe(
+        nodeSide.codec.capabilities.lossless,
+      )
+      expect(wasmSide.codec.capabilities.qualityRange, `${format}: qualityRange`).toEqual(
+        nodeSide.codec.capabilities.qualityRange,
+      )
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Omitted-quality self consistency: each adapter must treat encode(img, {})
+// exactly like encode with the shared ENCODER_DEFAULT_QUALITY value, so that
+// callers omitting quality stay parity safe across platforms.
+// ---------------------------------------------------------------------------
+
+describe('adapter parity: omitted quality uses the shared default', () => {
+  it('jpeg encode {} is byte identical to the explicit default on both adapters', async () => {
+    const sides = await bothCodecs('jpeg')
+    const img = noiseImage(SIZE, SIZE, 13, false)
+    for (const side of sides) {
+      const omitted = await side.codec.encode(img, {})
+      const explicit = await side.codec.encode(img, {
+        quality: ENCODER_DEFAULT_QUALITY.jpeg,
+      })
+      expect(omitted.length, `jpeg ${side.name}: bytes`).toBeGreaterThan(0)
+      expect(omitted.length, `jpeg ${side.name}: byte length`).toBe(explicit.length)
+      const at = firstByteMismatch(
+        new Uint8ClampedArray(omitted.buffer, omitted.byteOffset, omitted.byteLength),
+        new Uint8ClampedArray(explicit.buffer, explicit.byteOffset, explicit.byteLength),
+      )
+      expect(at, `jpeg ${side.name}: first differing byte index`).toBe(-1)
+    }
+  })
+})
 
 // ---------------------------------------------------------------------------
 // Lossless formats: every encode from either adapter, decoded by either

@@ -28,6 +28,15 @@ const MIN_TILE_EDGE = 16
  * rather than the mean, because one sharp region proves the source is
  * sharp even when most of the frame is bokeh.
  *
+ * Comparability regime: normalizeLongEdge never upscales, so p95 values
+ * are strictly comparable only among images whose long edge is at least
+ * 1024; smaller images are measured at their native scale, where the
+ * absolute numbers run higher because no resampling attenuates them.
+ * Upscale discrimination (2x upscale scoring below its source) therefore
+ * exists only below the normalized scale, where the interpolated pixels
+ * survive into the measurement; detecting upscaling of large images is
+ * the job of spectrum.ts effectiveResolution, not of this metric.
+ *
  * Pipeline: normalizeLongEdge(1024), Rec. 601 grayscale, 3x3 Laplacian
  * [0,1,0; 1,-4,1; 0,1,0] over interior pixels only (the 1px border is
  * skipped rather than inventing an edge handling convention), then the

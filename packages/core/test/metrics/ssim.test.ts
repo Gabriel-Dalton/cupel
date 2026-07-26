@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ssim } from '../../src/metrics/ssim.js'
 import type { RawImage } from '../../src/types.js'
 import {
+  addGaussianNoise,
   clone,
   gaussianBlur,
   horizontalGradient,
@@ -36,10 +37,27 @@ describe('ssim', () => {
     expect(ssim(img, img)).toBe(1)
   })
 
-  it('scores a structured image against heavy noise below 0.3', () => {
+  it('scores a gradient against an unrelated uniform-noise image below 0.3', () => {
+    // Two unrelated images: a smooth gradient versus independently drawn
+    // uniform noise. This is a general "no shared structure" sanity check;
+    // the kickoff's specific "image against heavy gaussian noise" clause is
+    // pinned by the dedicated additive-noise test below.
     const structured = horizontalGradient(64, 64)
     const noise = noiseImage(64, 64, 7)
     expect(ssim(structured, noise)).toBeLessThan(0.3)
+  })
+
+  it('scores an image against a heavily gaussian-noised copy of itself below 0.3', () => {
+    // The kickoff requirement: "SSIM of an image against heavy gaussian
+    // noise is below 0.3". Additive zero-mean gaussian noise at sigma 80 on
+    // a 128x128 gradient measures 0.0509 with this window scheme, safely
+    // under the bound. A noise BASE would not work here: its own per-window
+    // variance is so large that the structure term survives additive noise
+    // (measured 0.57 even at sigma 100), which is correct SSIM behavior,
+    // not a bug.
+    const base = horizontalGradient(128, 128)
+    const noised = addGaussianNoise(base, 80, 7)
+    expect(ssim(base, noised)).toBeLessThan(0.3)
   })
 
   it('is exactly symmetric for a gradient/noise pair', () => {
@@ -69,6 +87,15 @@ describe('ssim', () => {
     const a = solid(8, 8, [10, 20, 30])
     const b = solid(8, 9, [10, 20, 30])
     expect(() => ssim(a, b)).toThrow(/dimension/i)
+  })
+
+  it('throws on zero-area images instead of returning NaN', () => {
+    const empty: RawImage = { width: 0, height: 0, data: new Uint8ClampedArray(0) }
+    const zeroWide: RawImage = { width: 0, height: 8, data: new Uint8ClampedArray(0) }
+    const zeroTall: RawImage = { width: 8, height: 0, data: new Uint8ClampedArray(0) }
+    expect(() => ssim(empty, empty)).toThrow(/empty/i)
+    expect(() => ssim(zeroWide, zeroWide)).toThrow(/empty/i)
+    expect(() => ssim(zeroTall, zeroTall)).toThrow(/empty/i)
   })
 
   it('is invariant to a shared constant offset in the way the definition requires', () => {

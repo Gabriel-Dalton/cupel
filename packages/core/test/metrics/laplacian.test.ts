@@ -54,21 +54,23 @@ describe('laplacianSharpness', () => {
   })
 
   it('keeps a 2x upscale lower but on a comparable scale', () => {
-    // upscale2x inserts bilinearly interpolated pixels: it adds no detail
-    // above the source Nyquist frequency, so the upscaled value must be
-    // LOWER, never higher. The drop is large by nature: the 3x3 Laplacian
-    // is a second difference operator whose power response grows roughly
-    // like frequency^4, so spreading the same content over twice as many
-    // pixels (halving every normalized frequency) collapses the response,
-    // and bilinear interpolation additionally attenuates what remains.
-    // Both images here are already at or below the 1024 long edge, so
-    // normalization resizes neither; the empirical ratio for white noise
-    // is stable at 29.0 to 29.4 across seeds. The originally proposed
-    // factor 3 bound is not physically achievable for this fixture, so the
-    // sanity ceiling is set to 40: it still proves the two readings stay
-    // within a bounded, same-order-of-magnitude band instead of diverging
-    // arbitrarily, while the strict "lower" assertion carries the real
-    // meaning of the test.
+    // Why these two readings differ at all: normalizeLongEdge deliberately
+    // never upscales (a documented deviation from the brief's literal
+    // "resize so the long edge is 1024"). Under literal upscaling semantics
+    // the 512x384 base would be bilinearly upscaled to 1024x768, which is
+    // exactly what upscale2x produces, so both fixtures would normalize to
+    // identical pixels and the ratio would be exactly 1.0. Because the base
+    // is instead measured at its native 512 scale, the comparison is
+    // native-scale noise versus interpolated noise, and the gap is large:
+    // the 3x3 Laplacian is a second difference operator whose power
+    // response grows roughly like frequency^4, so halving every normalized
+    // frequency collapses the response, and bilinear interpolation
+    // additionally attenuates what remains. Both images are at or below
+    // the 1024 long edge, so normalization resizes neither; the empirical
+    // ratio for white noise is stable at 29.0 to 29.4 across seeds. The
+    // sanity ceiling of 40 proves the two readings stay within a bounded,
+    // same-order-of-magnitude band instead of diverging arbitrarily, while
+    // the strict "lower" assertion carries the real meaning of the test.
     const base = noiseImage(512, 384, 42)
     const up = upscale2x(base)
     expect(up.width).toBe(1024)
@@ -77,6 +79,58 @@ describe('laplacianSharpness', () => {
     const upP = laplacianSharpness(up).p95
     expect(upP).toBeLessThan(basP)
     expect(basP).toBeLessThan(40 * upP)
+  })
+
+  it('still separates a 2x upscale when normalization engages (weak regime)', () => {
+    // Both fixtures here are ABOVE the 1024 long edge, so both pass through
+    // the area-average downscale before measurement. The upscaled image is
+    // downscaled harder (2800 -> 1024 vs 1400 -> 1024), which averages away
+    // much of the softness that distinguishes it, so the separation in this
+    // regime is weak: measured base/upscaled ratio is about 2.0 (11699 vs
+    // 5854, seed 42), versus about 29x below the normalized scale. Only the
+    // direction is asserted; detecting upscaling of large images is
+    // spectrum.ts effectiveResolution's job, not this metric's.
+    const base = noiseImage(1400, 1050, 42)
+    const up = upscale2x(base)
+    const basP = laplacianSharpness(base).p95
+    const upP = laplacianSharpness(up).p95
+    expect(upP).toBeLessThan(basP)
+    // Sanity floor so a future change cannot silently widen this into the
+    // below-normalized-scale regime's 29x separation and invalidate the
+    // "weak" characterization without this test noticing.
+    expect(basP).toBeLessThan(4 * upP)
+  })
+
+  it('pins the residual measurement-scale cliff for identical-statistics noise', () => {
+    // White noise at 1024x768 is measured natively; at 1100x825 it is area
+    // averaged down to 1024x768 first. The two readings differ by a factor
+    // of about 3.6 (measured 3.63 to 3.64 across seeds 1, 42, 99), and that
+    // residual is honest measurement physics, in two parts:
+    //   1. Information-theoretic: the 1100x825 image carries real detail
+    //      above the 1024-scale Nyquist limit that no resampler can
+    //      represent at the measurement scale; even an ideal brick-wall
+    //      filter would read lower here.
+    //   2. Filter rolloff: the area filter is not brick-wall, so it also
+    //      attenuates retained frequencies near Nyquist, and the
+    //      Laplacian's roughly frequency^4 power response amplifies that.
+    // What the area filter FIXED is the old bilinear path's aliasing and
+    // phase dependence: point-sampled bilinear skipped source pixels below
+    // scale 0.5, so readings for identical-statistics noise bounced back
+    // UP as images got larger (21860 at scale 0.64, 22444 at scale 0.32,
+    // versus 16069 at scale 0.93). With area averaging the readings decay
+    // with scale instead; the deep-downscale assertion below fails on the
+    // bilinear path.
+    const at1024 = laplacianSharpness(noiseImage(1024, 768, 42)).p95
+    const at1100 = laplacianSharpness(noiseImage(1100, 825, 42)).p95
+    const ratio = at1024 / at1100
+    expect(ratio).toBeGreaterThan(3.4)
+    expect(ratio).toBeLessThan(3.9)
+    // Aliasing regression pin: a much larger identical-statistics image
+    // must read lower than a slightly larger one, not higher. Bilinear
+    // measured 22444 (3200x2400) vs 16069 (1100x825); area measures 3804
+    // vs 14038.
+    const at3200 = laplacianSharpness(noiseImage(3200, 2400, 42)).p95
+    expect(at3200).toBeLessThan(at1100)
   })
 
   it('rates one sharp region as sharp, unlike a mean would', () => {

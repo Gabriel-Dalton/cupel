@@ -13,6 +13,11 @@ import { toGrayscale } from '../internal/luma.js'
  * If a reference implementation arrives later and disagrees, reconciling the
  * two is a deliberate, documented change (see GOVERNANCE.md on metrics).
  *
+ * Calibration note: the brief's allocation floors (drop points below ssim
+ * 0.97 globally, 0.99 above the fold) were written against standard SSIM's
+ * 11x11 gaussian sliding window scale and must be recalibrated for this
+ * variant before M5 builds the allocator on them.
+ *
  * Per window statistics are population statistics (divide by N). The
  * numerator and denominator of each SSIM factor are deliberately built from
  * the same expression shapes: for identical inputs, muA equals muB and
@@ -30,6 +35,9 @@ export function ssim(a: RawImage, b: RawImage): number {
     throw new Error(
       `ssim: dimension mismatch, got ${a.width}x${a.height} vs ${b.width}x${b.height}`,
     )
+  }
+  if (a.width === 0 || a.height === 0) {
+    throw new Error(`ssim: image is empty, got ${a.width}x${a.height}`)
   }
   const { width, height } = a
   const ga = toGrayscale(a)

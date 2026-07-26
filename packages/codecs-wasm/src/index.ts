@@ -1,3 +1,4 @@
+import { ENCODER_DEFAULT_QUALITY } from '@cupel/core'
 import type { EncodeOptions, Encoder, RawImage } from '@cupel/core'
 import avifPkg from '@jsquash/avif/package.json'
 import jpegPkg from '@jsquash/jpeg/package.json'
@@ -40,12 +41,6 @@ type ImageDataLike = {
   height: number
 }
 
-// Codec default qualities, taken from each package's meta.js defaults so that
-// omitting opts.quality behaves like calling the codec directly.
-const JPEG_DEFAULT_QUALITY = 75
-const WEBP_DEFAULT_QUALITY = 75
-const AVIF_DEFAULT_QUALITY = 50
-
 // The jsquash packages hold their emscripten or wasm-bindgen instance in
 // module scope, one per package entry point, so init must run exactly once
 // per format and role for the whole process. First wasmCodec call for a
@@ -61,8 +56,31 @@ function once<T>(key: string, make: () => Promise<T>): Promise<T> {
   return fresh
 }
 
-function clampQuality(quality: number): number {
-  return Math.min(100, Math.max(1, Math.round(quality)))
+function clampQuality(q: number | undefined, fallback: number): number {
+  if (q === undefined || !Number.isFinite(q)) return fallback
+  return Math.min(100, Math.max(1, Math.round(q)))
+}
+
+/**
+ * Same defensive check as the node adapter. Without it the wasm encoders
+ * silently read uninitialized heap memory (jpeg, webp) or panic opaquely
+ * inside the wasm module (png) when the data length disagrees with the
+ * dimensions.
+ */
+function assertDimensionsMatchData(img: RawImage): void {
+  const expected = img.width * img.height * 4
+  if (
+    !Number.isInteger(img.width) ||
+    !Number.isInteger(img.height) ||
+    img.width <= 0 ||
+    img.height <= 0 ||
+    img.data.length !== expected
+  ) {
+    throw new Error(
+      `RawImage dimensions do not match data length: ${img.width}x${img.height} RGBA ` +
+        `requires ${expected} bytes, got ${img.data.length}`,
+    )
+  }
 }
 
 /** Copies bytes into a fresh, tightly sized ArrayBuffer, as the codecs want. */
@@ -203,10 +221,11 @@ function jpegCodec(modules?: WasmModules): Encoder {
     capabilities: { qualityRange: [1, 100], lossless: false },
     version: async () => jpegPkg.version,
     async encode(img: RawImage, opts: EncodeOptions): Promise<Uint8Array> {
+      assertDimensionsMatchData(img)
       const encode = await loadJpegEncode(modules)
       const flat = flattenOntoWhite(img)
       const buf = await encode(toImageData(flat), {
-        quality: clampQuality(opts.quality ?? JPEG_DEFAULT_QUALITY),
+        quality: clampQuality(opts.quality, ENCODER_DEFAULT_QUALITY.jpeg),
       })
       return new Uint8Array(buf)
     },
@@ -222,10 +241,13 @@ function pngCodec(modules?: WasmModules): Encoder {
     id: 'jsquash-png',
     format: 'png',
     supportsAlpha: true,
-    // png is always lossless; quality has no meaning and is ignored.
-    capabilities: { qualityRange: [100, 100], lossless: true },
+    // png is always lossless; quality has no meaning and is ignored. Both
+    // adapters advertise [0, 0] per the Encoder.capabilities contract in
+    // @cupel/core so callers can tell the knob has no effect.
+    capabilities: { qualityRange: [0, 0], lossless: true },
     version: async () => pngPkg.version,
     async encode(img: RawImage, _opts: EncodeOptions): Promise<Uint8Array> {
+      assertDimensionsMatchData(img)
       const encode = await loadPngEncode(modules)
       const buf = await encode(toImageData(img))
       return new Uint8Array(buf)
@@ -245,10 +267,11 @@ function webpCodec(modules?: WasmModules): Encoder {
     capabilities: { qualityRange: [1, 100], lossless: true },
     version: async () => webpPkg.version,
     async encode(img: RawImage, opts: EncodeOptions): Promise<Uint8Array> {
+      assertDimensionsMatchData(img)
       const encode = await loadWebpEncode(modules)
       const lossless = opts.lossless === true
       const buf = await encode(toImageData(img), {
-        quality: clampQuality(opts.quality ?? WEBP_DEFAULT_QUALITY),
+        quality: clampQuality(opts.quality, ENCODER_DEFAULT_QUALITY.webp),
         // libwebp options are numeric flags, not booleans. exact preserves
         // RGB values in fully transparent pixels, required for a bit exact
         // lossless roundtrip.
@@ -272,13 +295,18 @@ function avifCodec(modules?: WasmModules): Encoder {
     capabilities: { qualityRange: [1, 100], lossless: true },
     version: async () => avifPkg.version,
     async encode(img: RawImage, opts: EncodeOptions): Promise<Uint8Array> {
+      assertDimensionsMatchData(img)
       const encode = await loadAvifEncode(modules)
       // The @jsquash/avif wrapper translates lossless: true into quality 100,
-      // qualityAlpha -1, and YUV444 subsampling itself.
-      const buf = await encode(toImageData(img), {
-        quality: clampQuality(opts.quality ?? AVIF_DEFAULT_QUALITY),
-        lossless: opts.lossless === true,
-      })
+      // qualityAlpha -1, and YUV444 subsampling itself, and console.warns
+      // when a conflicting quality is passed alongside lossless. Omit quality
+      // entirely in that case so every lossless encode stays silent.
+      const buf = await encode(
+        toImageData(img),
+        opts.lossless === true
+          ? { lossless: true }
+          : { quality: clampQuality(opts.quality, ENCODER_DEFAULT_QUALITY.avif) },
+      )
       return new Uint8Array(buf)
     },
     async decode(bytes: Uint8Array): Promise<RawImage> {
@@ -298,10 +326,11 @@ function avifCodec(modules?: WasmModules): Encoder {
  * bundlers but rejects on first use in plain Node.
  *
  * decode always copies into a fresh Uint8ClampedArray backed RawImage.
- * encode maps opts.quality (clamped to 1..100) onto each codec's native
- * 0..100 quality scale and opts.lossless onto webp's lossless and exact flags
- * and avif's lossless option; png is inherently lossless and jpeg is
- * flattened onto white because mozjpeg has no alpha channel.
+ * encode maps opts.quality (clamped to 1..100; non-finite values fall back
+ * to the shared ENCODER_DEFAULT_QUALITY defaults from @cupel/core) onto each
+ * codec's native 0..100 quality scale and opts.lossless onto webp's lossless
+ * and exact flags and avif's lossless option; png is inherently lossless and
+ * jpeg is flattened onto white because mozjpeg has no alpha channel.
  */
 export function wasmCodec(format: CodecFormat, modules?: WasmModules): Encoder {
   switch (format) {

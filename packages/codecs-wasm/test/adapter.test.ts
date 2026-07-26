@@ -7,7 +7,8 @@ import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { ENCODER_DEFAULT_QUALITY } from '@cupel/core'
 import type { Encoder, RawImage } from '@cupel/core'
 import { wasmCodec, type CodecFormat, type WasmModules } from '../src/index.js'
 
@@ -98,6 +99,20 @@ function everyAlphaIs255(img: RawImage): boolean {
   return true
 }
 
+/** Index of the first differing byte, or -1 when the arrays are identical. */
+function firstByteMismatch(a: Uint8Array, b: Uint8Array): number {
+  const len = Math.min(a.length, b.length)
+  for (let i = 0; i < len; i++) {
+    if ((a[i] ?? 0) !== (b[i] ?? 0)) return i
+  }
+  return a.length === b.length ? -1 : len
+}
+
+function expectSameBytes(a: Uint8Array, b: Uint8Array, label: string): void {
+  expect(a.length, `${label}: byte length`).toBe(b.length)
+  expect(firstByteMismatch(a, b), `${label}: first differing byte index`).toBe(-1)
+}
+
 // ---------------------------------------------------------------------------
 // Wasm module loading
 // ---------------------------------------------------------------------------
@@ -175,6 +190,8 @@ describe('wasmCodec adapter', () => {
     expect(png.id).toBe('jsquash-png')
     expect(png.format).toBe('png')
     expect(png.capabilities.lossless).toBe(true)
+    // Lossless-only formats advertise [0, 0] per the core Encoder contract.
+    expect(png.capabilities.qualityRange).toEqual([0, 0])
     const jpeg = await codec('jpeg')
     expect(jpeg.id).toBe('jsquash-jpeg')
     expect(jpeg.supportsAlpha).toBe(false)
@@ -244,5 +261,66 @@ describe('wasmCodec adapter', () => {
     await expect(jpeg.decode(garbage)).rejects.toThrow()
     const png = await codec('png')
     await expect(png.decode(garbage)).rejects.toThrow()
+  })
+
+  it('encode rejects mismatched dimensions with a clear message', async () => {
+    // Without the guard the wasm encoders read uninitialized heap (jpeg,
+    // webp) or panic opaquely inside the module (png).
+    const bad: RawImage = { width: 32, height: 32, data: new Uint8ClampedArray(16) }
+    for (const format of ['jpeg', 'webp', 'png'] as const) {
+      const enc = await codec(format)
+      await expect(enc.encode(bad, {}), format).rejects.toThrow(
+        /dimensions do not match data length/i,
+      )
+    }
+  })
+})
+
+describe('wasmCodec default quality', () => {
+  it('jpeg encode with {} is byte identical to the shared default quality', async () => {
+    const jpeg = await codec('jpeg')
+    const img = noiseImage(48, 48, 21)
+    const omitted = await jpeg.encode(img, {})
+    const explicit = await jpeg.encode(img, { quality: ENCODER_DEFAULT_QUALITY.jpeg })
+    expect(omitted.length).toBeGreaterThan(0)
+    expectSameBytes(omitted, explicit, 'jpeg omitted vs explicit default')
+  })
+
+  it('webp encode with {} is byte identical to the shared default quality', async () => {
+    const webp = await codec('webp')
+    const img = noiseImage(48, 48, 21)
+    const omitted = await webp.encode(img, {})
+    const explicit = await webp.encode(img, { quality: ENCODER_DEFAULT_QUALITY.webp })
+    expect(omitted.length).toBeGreaterThan(0)
+    expectSameBytes(omitted, explicit, 'webp omitted vs explicit default')
+  })
+
+  it('quality NaN falls back to the format default, byte identical', async () => {
+    const img = noiseImage(48, 48, 23)
+    for (const format of ['jpeg', 'webp'] as const) {
+      const enc = await codec(format)
+      const fromNaN = await enc.encode(img, { quality: Number.NaN })
+      const fromDefault = await enc.encode(img, { quality: ENCODER_DEFAULT_QUALITY[format] })
+      expectSameBytes(fromNaN, fromDefault, `${format} NaN vs default`)
+    }
+  })
+})
+
+describe('wasmCodec avif lossless', () => {
+  it('emits no console.warn and roundtrips exactly', async () => {
+    const avif = await codec('avif')
+    const img = noiseImage(16, 16, 31)
+    const warn = vi.spyOn(console, 'warn')
+    try {
+      const bytes = await avif.encode(img, { lossless: true, quality: 50 })
+      expect(bytes.length).toBeGreaterThan(0)
+      // @jsquash/avif warns 'AVIF lossless: Quality setting is ignored...'
+      // when quality is passed alongside lossless. The adapter must omit it.
+      expect(warn).not.toHaveBeenCalled()
+      const back = await avif.decode(bytes)
+      expect(back.data).toEqual(img.data)
+    } finally {
+      warn.mockRestore()
+    }
   })
 })

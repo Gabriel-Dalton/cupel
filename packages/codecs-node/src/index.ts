@@ -1,3 +1,4 @@
+import { ENCODER_DEFAULT_QUALITY } from '@cupel/core'
 import type { EncodeOptions, Encoder, RawImage } from '@cupel/core'
 import sharp from 'sharp'
 
@@ -16,13 +17,15 @@ const CODEC_LIB: Record<CodecFormat, { label: string; version: () => string | un
   avif: { label: 'libheif', version: () => sharp.versions.heif },
 }
 
-/** sharp's own encoder defaults, used when opts.quality is absent. */
-const DEFAULT_QUALITY: Record<CodecFormat, number> = {
-  jpeg: 80,
-  png: 0,
-  webp: 80,
-  avif: 50,
-}
+/**
+ * Defaults applied when opts.quality is absent, shared with the wasm adapter
+ * through core's ENCODER_DEFAULT_QUALITY. sharp's own jpeg and webp encoder
+ * default is 80; it is deliberately overridden with 75 so encode(img, {})
+ * produces the same bitstream on both adapters and the browser playground's
+ * numbers stay stable. png ignores quality entirely; its entry exists only to
+ * make the lookup total.
+ */
+const DEFAULT_QUALITY: Record<CodecFormat, number> = { ...ENCODER_DEFAULT_QUALITY, png: 100 }
 
 function clampQuality(q: number | undefined, fallback: number): number {
   if (q === undefined || !Number.isFinite(q)) return fallback
@@ -53,8 +56,14 @@ function assertDimensionsMatchData(img: RawImage): void {
  * onto white before jpeg encode and supportsAlpha is false for jpeg only.
  * qualityRange is [1, 100] for the lossy formats (sharp rejects 0); png is
  * always lossless and ignores quality, advertised as [0, 0] so callers can
- * tell the knob has no effect. Absent quality falls back to sharp's encoder
- * defaults: jpeg 80, webp 80, avif 50.
+ * tell the knob has no effect. Absent quality falls back to the shared
+ * ENCODER_DEFAULT_QUALITY defaults: jpeg 75, webp 75, avif 50 (deliberately
+ * overriding sharp's own 80 for jpeg and webp; see DEFAULT_QUALITY).
+ *
+ * Caveat on webp lossless: sharp exposes no 'exact' flag, so node encoded
+ * lossless webp may rewrite RGB values under fully transparent pixels
+ * (libwebp is allowed to). The wasm adapter passes exact: 1 and preserves
+ * them; callers needing bit exact RGB under alpha 0 should encode there.
  */
 export function sharpCodec(format: CodecFormat): Encoder {
   const lib = CODEC_LIB[format]
@@ -93,6 +102,9 @@ export function sharpCodec(format: CodecFormat): Encoder {
           pipeline = input.png()
           break
         case 'webp':
+          // No 'exact' equivalent exists in sharp's webp options, so RGB
+          // under fully transparent pixels may be rewritten in lossless mode.
+          // See the sharpCodec doc comment for the full caveat.
           pipeline = input.webp(lossless ? { lossless: true } : { quality })
           break
         case 'avif':

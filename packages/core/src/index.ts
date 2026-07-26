@@ -1,4 +1,5 @@
 export type { RawImage, OutputFormat, EncodeOptions, Encoder } from './types.js'
+export { ENCODER_DEFAULT_QUALITY } from './types.js'
 
 export { ssim } from './metrics/ssim.js'
 export { deltaE, type DeltaEResult } from './metrics/deltae.js'
