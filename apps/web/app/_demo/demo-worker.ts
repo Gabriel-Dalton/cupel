@@ -8,6 +8,7 @@ import {
   type EncodeFormat,
 } from '../../lib/demo/pipeline'
 import type { DemoRequest, DemoResponse } from '../../lib/demo/protocol'
+import type { DemoSource, SourceLoader } from '../../lib/demo/sources'
 
 /**
  * The demo worker. Everything expensive happens here: drawing the sample
@@ -36,6 +37,31 @@ const codecs: DemoCodecs = {
   },
 }
 
+/**
+ * Reads a source photograph from the site's own origin.
+ *
+ * A missing file is an expected state and not an error: no photograph has been
+ * committed, so the demo draws its samples instead. Anything other than a clean
+ * 200 is treated the same way, because a 404 body rendered as HTML is not an
+ * image either.
+ */
+const loader: SourceLoader = {
+  async readPhoto(source: DemoSource): Promise<Uint8Array | null> {
+    try {
+      const response = await fetch(`/${source.file}`, { cache: 'force-cache' })
+      if (!response.ok) return null
+      const type = response.headers.get('content-type') ?? ''
+      if (!type.startsWith('image/')) return null
+      return new Uint8Array(await response.arrayBuffer())
+    } catch {
+      return null
+    }
+  },
+  decodeWebp(bytes: Uint8Array): Promise<RawImage> {
+    return wasmCodec('webp').decode(bytes)
+  },
+}
+
 async function buildSamples(): Promise<void> {
   const items: {
     kind: (typeof SAMPLES)[number]['kind']
@@ -43,8 +69,10 @@ async function buildSamples(): Promise<void> {
     bytes: ArrayBuffer
   }[] = []
   const transfer: Transferable[] = []
+  let photographed = true
   for (const sample of SAMPLES) {
-    const file = await buildSampleFile(sample.kind, codecs)
+    const file = await buildSampleFile(sample.kind, codecs, loader)
+    if (!file.photographed) photographed = false
     // Copy into a tightly sized buffer so the transfer moves exactly these
     // bytes and never a larger pooled backing store.
     const copy = new Uint8Array(file.bytes)
@@ -55,7 +83,7 @@ async function buildSamples(): Promise<void> {
     })
     transfer.push(copy.buffer as ArrayBuffer)
   }
-  post({ type: 'samples', items }, transfer)
+  post({ type: 'samples', items, photographed }, transfer)
 }
 
 async function run(request: Extract<DemoRequest, { type: 'run' }>): Promise<void> {

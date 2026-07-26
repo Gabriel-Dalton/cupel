@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "demo:photo": "node scripts/demo-photo.mjs"
   },
   "dependencies": {
     "@cupel/codecs-node": "workspace:*",
@@ -28,6 +29,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.7.0",
     "vitest": "^3.2.7"
   }

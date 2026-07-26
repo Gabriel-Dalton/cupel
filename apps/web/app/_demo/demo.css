@@ -6,16 +6,22 @@
  * they are the only two colours in this file. Everything else is grey.
  */
 
+/*
+ * The section lede sits directly above this, so the demo needs the same
+ * breathing room the other landing page blocks get from their own margin-top.
+ * Without it the picker crowds the paragraph explaining it.
+ */
 .try {
   display: grid;
   gap: var(--space-5);
+  margin-top: var(--space-7);
 }
 
 /* Sample picker */
 .try__picker {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
 }
 
 .sample {
@@ -52,9 +58,14 @@
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+/*
+ * Bigger than it was. At 5.5rem the picture in the button was too small to
+ * recognise, which made the thumbnail look like a zoomed in crop of the
+ * preview rather than the same photograph.
+ */
 .sample__thumb {
   display: block;
-  width: 5.5rem;
+  width: 7.5rem;
   aspect-ratio: 3 / 2;
   overflow: hidden;
   border-radius: var(--radius-2);
@@ -166,6 +177,12 @@
   pointer-events: none;
 }
 
+.try__drawn {
+  flex-basis: 100%;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
+
 .try__privacy {
   font-size: var(--text-sm);
   color: var(--ink-muted);
@@ -239,8 +256,16 @@
   gap: var(--space-3);
 }
 
+/*
+ * Capped at the source width. The samples are 960 pixels wide, and the verdict
+ * card is wider than that on a laptop, so an uncapped frame stretched every
+ * preview by about a third. Enlarging an image is the one thing guaranteed to
+ * make it look badly compressed, which is a poor advertisement for a tool that
+ * measures compression.
+ */
 .compare__frame {
   position: relative;
+  max-width: 960px;
   overflow: hidden;
   border-radius: var(--radius-2);
   background: var(--bg-inset);
@@ -282,6 +307,7 @@
 .compare__control {
   display: grid;
   gap: var(--space-2);
+  max-width: 960px;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--ink-muted);
@@ -293,6 +319,7 @@
 }
 
 .compare__caption {
+  max-width: 960px;
   font-size: var(--text-sm);
   color: var(--ink-faint);
 }

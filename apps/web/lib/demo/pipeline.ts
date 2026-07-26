@@ -1,6 +1,6 @@
 import { analyzeProvenance, decideAsset, deltaE, distortion, ssim } from '@cupel/core'
 import type { CandidatePoint, Container, ProvenanceRecord, RawImage } from '@cupel/core'
-import { buildScene } from './scenes'
+import { loadSource, type SourceLoader } from './sources'
 
 /**
  * The landing page demo, which is the real pipeline and not a mock up.
@@ -86,30 +86,54 @@ const DEMO_LADDER: readonly number[] = [78, 86, 93, 97]
  */
 const ABOVE_FOLD = true
 
+export type SampleFile = {
+  bytes: Uint8Array
+  container: Container
+  /** False when the source was a drawn scene rather than a photograph. */
+  photographed: boolean
+}
+
 /**
  * Builds the file the reader is meant to imagine finding on their server.
  * The bytes are produced by a real encoder so the quantization tables are
  * real, which is what lets analyzeProvenance say anything at all about the
  * file's history. Faking the file would fake the whole demo.
+ *
+ * The source picture is loaded rather than assumed, so the same code path runs
+ * whether the picture is a committed photograph or the fallback scene. The
+ * encodes below are the point: a photograph downloaded from anywhere has been
+ * through an encoder already, and re-encoding it here from decoded pixels at a
+ * known quality is what gives the "straight off a camera" file an honest
+ * history.
  */
 export async function buildSampleFile(
   kind: SampleKind,
   codecs: DemoCodecs,
-): Promise<{ bytes: Uint8Array; container: Container }> {
+  loader: SourceLoader,
+): Promise<SampleFile> {
   if (kind === 'png') {
-    return { bytes: await codecs.encode('png', buildScene('garden'), null), container: 'png' }
+    const source = await loadSource('garden', loader)
+    return {
+      bytes: await codecs.encode('png', source.image, null),
+      container: 'png',
+      photographed: source.photographed,
+    }
   }
 
-  const scene = buildScene('coast')
+  const source = await loadSource('coast', loader)
   if (kind === 'fresh') {
-    return { bytes: await codecs.encode('jpeg', scene, 94), container: 'jpeg' }
+    return {
+      bytes: await codecs.encode('jpeg', source.image, 94),
+      container: 'jpeg',
+      photographed: source.photographed,
+    }
   }
 
   // Two generations at low quality, decoding in between, which is exactly
   // what happens when a pipeline re-saves an upload that was already lossy.
-  const first = await codecs.encode('jpeg', scene, 42)
+  const first = await codecs.encode('jpeg', source.image, 42)
   const second = await codecs.encode('jpeg', await codecs.decode('jpeg', first), 34)
-  return { bytes: second, container: 'jpeg' }
+  return { bytes: second, container: 'jpeg', photographed: source.photographed }
 }
 
 export type DemoVerdict = 'saved' | 'stopped' | 'kept'

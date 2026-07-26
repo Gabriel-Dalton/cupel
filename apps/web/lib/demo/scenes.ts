@@ -2,23 +2,49 @@ import type { RawImage } from '@cupel/core'
 import { clampByte, mulberry32, smoothstep, valueNoise2d } from '../noise'
 
 /**
- * The sample photographs for the landing page demo, drawn with arithmetic.
+ * The fallback pictures for the landing page demo, drawn with arithmetic.
  *
- * They are generated rather than shipped as files for two reasons. The repo
- * carries no binary fixtures, and a generated scene can be built with the
- * exact properties the demo needs to teach: enough fine detail that a quality
- * ladder produces a real curve, a 1/f-ish spectrum so the resolution check
- * does not read them as enlarged, and no licensing question about whose
- * photograph is on the front page.
+ * A real photograph is the better teacher and the demo prefers one whenever a
+ * file is present under public/demo (see sources.ts). These scenes exist for
+ * the case where none is: they can be built with the exact properties the demo
+ * needs (enough fine detail that a quality ladder produces a real curve, a
+ * 1/f-ish spectrum so the resolution check does not read them as enlarged) and
+ * they raise no question about whose photograph is on the front page.
  *
- * They are not pretending to be camera output. The page says they are
- * generated, and there is a control to drop in a real photograph instead.
+ * They are not pretending to be camera output, and the page does not claim they
+ * are: the picker says "drawn, not photographed" when it is showing these.
  */
 
 export type SceneName = 'coast' | 'garden'
 
-const WIDTH = 720
-const HEIGHT = 480
+/*
+ * 960x640 rather than the 720x480 this started at. The compare frame on the
+ * landing page is wider than 720 CSS pixels on a laptop, so the old scenes were
+ * being blown up by about a third, and an upscaled image looks exactly like a
+ * badly compressed one. The frame is also capped at this width now (demo.css),
+ * so the two changes together mean the preview is never enlarged.
+ *
+ * Cost: 1.8 times the pixels, so 1.8 times the encode time in the tab. That is
+ * the trade being made deliberately, because "the demo looks blurry" undermines
+ * a tool whose entire claim is about image quality.
+ */
+export const SCENE_WIDTH = 960
+export const SCENE_HEIGHT = 640
+
+const WIDTH = SCENE_WIDTH
+const HEIGHT = SCENE_HEIGHT
+
+/**
+ * Everything below was tuned in pixels at 720 wide. Scaling those constants
+ * keeps the composition identical instead of leaving the sun the size of a pea
+ * and the noise cells reading as sand.
+ */
+const S = WIDTH / 720
+
+/** Rounds a tuned pixel constant into the current scene size. */
+function px(atSevenTwenty: number): number {
+  return atSevenTwenty * S
+}
 
 /**
  * Warm coastline at low sun: a vertical sky gradient, a sun with falloff,
@@ -28,17 +54,17 @@ const HEIGHT = 480
  */
 function coast(): RawImage {
   const rng = mulberry32(0xc0a57)
-  const cloud = valueNoise2d(WIDTH, HEIGHT, 96, rng)
-  const cloudFine = valueNoise2d(WIDTH, HEIGHT, 34, rng)
+  const cloud = valueNoise2d(WIDTH, HEIGHT, px(96), rng)
+  const cloudFine = valueNoise2d(WIDTH, HEIGHT, px(34), rng)
   // Chop is coarse rather than fine. A small cell size here produced blobs
   // about seven pixels across, which read as rows of blurry text rather than
   // as water.
-  const chop = valueNoise2d(WIDTH, HEIGHT, 26, rng)
-  const glitter = valueNoise2d(WIDTH, HEIGHT, 3, rng)
+  const chop = valueNoise2d(WIDTH, HEIGHT, px(26), rng)
+  const glitter = valueNoise2d(WIDTH, HEIGHT, px(3), rng)
 
   const horizon = Math.round(HEIGHT * 0.62)
   const sunX = WIDTH * 0.62
-  const sunY = horizon - 34
+  const sunY = horizon - px(34)
   const data = new Uint8ClampedArray(WIDTH * HEIGHT * 4)
 
   /**
@@ -51,9 +77,9 @@ function coast(): RawImage {
   function ridgeAt(x: number): number {
     return (
       horizon +
-      52 -
-      96 * Math.exp(-Math.pow((x - WIDTH * 0.07) / 145, 2)) -
-      64 * Math.exp(-Math.pow((x - WIDTH * 0.97) / 105, 2))
+      px(52) -
+      px(96) * Math.exp(-Math.pow((x - WIDTH * 0.07) / px(145), 2)) -
+      px(64) * Math.exp(-Math.pow((x - WIDTH * 0.97) / px(105), 2))
     )
   }
 
@@ -89,9 +115,9 @@ function coast(): RawImage {
         r = 54 + 52 * (1 - t)
         g = 78 + 54 * (1 - t)
         b = 112 + 46 * (1 - t)
-        const swell = Math.sin((y - horizon) * (0.09 + 0.04 * t) + x * 0.003) * 6
+        const swell = Math.sin(((y - horizon) * (0.09 + 0.04 * t)) / S + (x * 0.003) / S) * 6
         const detail = ((chop[i] ?? 0) - 0.5) * (13 - 6 * t)
-        const column = Math.exp(-Math.pow((x - sunX) / (54 + 165 * t), 2))
+        const column = Math.exp(-Math.pow((x - sunX) / px(54 + 165 * t), 2))
         const sparkle = Math.pow(Math.max(0, (glitter[i] ?? 0) - 0.7), 2) * 210 * column
         r += swell + detail + column * 116 + sparkle
         g += swell + detail * 0.9 + column * 90 + sparkle * 0.95
@@ -99,8 +125,8 @@ function coast(): RawImage {
       }
 
       // The sun and its glow, over both sky and water.
-      const disc = 1 - smoothstep(19, 24, dist)
-      const glow = Math.exp(-dist / 105) * 0.9
+      const disc = 1 - smoothstep(px(19), px(24), dist)
+      const glow = Math.exp(-dist / px(105)) * 0.9
       r += disc * 150 + glow * 112
       g += disc * 118 + glow * 68
       b += disc * 54 + glow * 22
@@ -108,7 +134,8 @@ function coast(): RawImage {
       // Headland: everything below the ridge line and above the water line.
       const ridge = ridgeAt(x)
       const land =
-        smoothstep(ridge - 1.5, ridge + 2.5, y) * (1 - smoothstep(horizon - 1, horizon + 1, y))
+        smoothstep(ridge - px(1.5), ridge + px(2.5), y) *
+        (1 - smoothstep(horizon - px(1), horizon + px(1), y))
       if (land > 0.01) {
         // Not pure black: a silhouette at dusk still carries some sky light,
         // and a flat black mass would be trivially compressible in a way no
@@ -142,12 +169,12 @@ function coast(): RawImage {
  */
 function garden(): RawImage {
   const rng = mulberry32(0x9a2de4)
-  const canopy = valueNoise2d(WIDTH, HEIGHT, 110, rng)
-  const clump = valueNoise2d(WIDTH, HEIGHT, 42, rng)
-  const leaf = valueNoise2d(WIDTH, HEIGHT, 14, rng)
-  const veins = valueNoise2d(WIDTH, HEIGHT, 5, rng)
-  const light = valueNoise2d(WIDTH, HEIGHT, 72, rng)
-  const bloom = valueNoise2d(WIDTH, HEIGHT, 22, rng)
+  const canopy = valueNoise2d(WIDTH, HEIGHT, px(110), rng)
+  const clump = valueNoise2d(WIDTH, HEIGHT, px(42), rng)
+  const leaf = valueNoise2d(WIDTH, HEIGHT, px(14), rng)
+  const veins = valueNoise2d(WIDTH, HEIGHT, px(5), rng)
+  const light = valueNoise2d(WIDTH, HEIGHT, px(72), rng)
+  const bloom = valueNoise2d(WIDTH, HEIGHT, px(22), rng)
   const data = new Uint8ClampedArray(WIDTH * HEIGHT * 4)
 
   for (let y = 0; y < HEIGHT; y++) {

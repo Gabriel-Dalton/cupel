@@ -21,6 +21,12 @@ export type DemoRequest = BuildSamplesRequest | RunRequest
 export type SamplesReadyMessage = {
   type: 'samples'
   items: { kind: SampleKind; container: Container; bytes: ArrayBuffer }[]
+  /**
+   * True when the samples were built from committed photographs rather than the
+   * drawn fallback scenes. The page says which, so it never calls arithmetic a
+   * photograph.
+   */
+  photographed: boolean
 }
 
 export type ProgressMessage = { type: 'progress'; done: number; total: number }

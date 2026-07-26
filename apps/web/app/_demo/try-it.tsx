@@ -46,6 +46,8 @@ export function TryIt() {
   const [failure, setFailure] = useState<string | null>(null)
   const [showTechnical, setShowTechnical] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  // Whether the samples came from committed photographs or the drawn fallback.
+  const [photographed, setPhotographed] = useState(true)
 
   const workerRef = useRef<Worker | null>(null)
   // Preview URLs for the current run, revoked before each new run.
@@ -85,6 +87,7 @@ export function TryIt() {
           }
           setSamples(next)
           setThumbs(nextThumbs)
+          setPhotographed(msg.photographed)
           setPhase('ready')
           break
         }
@@ -195,7 +198,7 @@ export function TryIt() {
             >
               <span className="sample__thumb">
                 {thumb ? (
-                  <img src={thumb} alt="" width={160} height={107} />
+                  <img src={thumb} alt="" width={240} height={160} />
                 ) : (
                   <span className="sample__thumb-empty" aria-hidden="true" />
                 )}
@@ -241,11 +244,17 @@ export function TryIt() {
         <p className="try__privacy">
           It stays on your device. There is no upload and no server involved in this demo.
         </p>
+        {!photographed && phase !== 'preparing' && (
+          <p className="try__drawn">
+            The three samples above are drawn by the page, not photographed. Your own picture is the
+            better test.
+          </p>
+        )}
       </div>
 
       <div className="try__stage" aria-live="polite">
         {phase === 'preparing' && (
-          <p className="try__status">Drawing the sample photos, one moment.</p>
+          <p className="try__status">Getting the sample pictures ready, one moment.</p>
         )}
 
         {phase === 'ready' && !result && (

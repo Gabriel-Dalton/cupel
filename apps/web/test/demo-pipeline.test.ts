@@ -9,14 +9,15 @@
 // The wasm builds cannot self-load in plain Node, so the modules are read from
 // the @jsquash packages and handed to wasmCodec precompiled, the same
 // injection path the adapter tests use.
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import type { Encoder, RawImage } from '@cupel/core'
 import { wasmCodec } from '@cupel/codecs-wasm'
 import type { CodecFormat } from '@cupel/codecs-wasm'
 import { buildSampleFile, runDemo, type DemoCodecs, type EncodeFormat } from '../lib/demo/pipeline'
-import { buildScene } from '../lib/demo/scenes'
+import { SCENE_HEIGHT, SCENE_WIDTH, buildScene } from '../lib/demo/scenes'
+import { DEMO_SOURCES, loadSource, type SourceLoader } from '../lib/demo/sources'
 
 const LONG = 240_000
 
@@ -60,12 +61,40 @@ const codecs: DemoCodecs = {
   },
 }
 
+/**
+ * The loader the tests run with. Photographs are optional in the repo, so the
+ * tests read whatever is committed under public/demo and fall through to the
+ * drawn scenes when nothing is: both states have to work, because both ship.
+ */
+const loader: SourceLoader = {
+  async readPhoto(source) {
+    try {
+      return new Uint8Array(
+        await readFile(fileURLToPath(new URL(`../public/${source.file}`, import.meta.url))),
+      )
+    } catch {
+      return null
+    }
+  },
+  async decodeWebp(bytes) {
+    return (await codec('webp')).decode(bytes)
+  },
+}
+
+/** A loader with no photographs at all, to pin the fallback path. */
+const drawnOnly: SourceLoader = {
+  async readPhoto() {
+    return null
+  },
+  decodeWebp: loader.decodeWebp,
+}
+
 describe('demo scenes', () => {
   it('are deterministic and fully opaque', () => {
     const a = buildScene('coast')
     const b = buildScene('coast')
-    expect(a.width).toBe(720)
-    expect(a.height).toBe(480)
+    expect(a.width).toBe(SCENE_WIDTH)
+    expect(a.height).toBe(SCENE_HEIGHT)
     expect(Array.from(a.data.slice(0, 4096))).toEqual(Array.from(b.data.slice(0, 4096)))
     for (let i = 3; i < a.data.length; i += 4) {
       if (a.data[i] !== 255) throw new Error(`alpha at pixel ${(i - 3) / 4} is not opaque`)
@@ -86,7 +115,7 @@ describe('demo scenes', () => {
 
 describe('the three landing page promises', () => {
   it('sample one: a fresh photo gets meaningfully smaller', { timeout: LONG }, async () => {
-    const file = await buildSampleFile('fresh', codecs)
+    const file = await buildSampleFile('fresh', codecs, loader)
     const result = await runDemo(file, codecs)
 
     expect(result.verdict, `expected a saving, got: ${result.technicalReason}`).toBe('saved')
@@ -102,7 +131,7 @@ describe('the three landing page promises', () => {
     'sample two: a photo the pipeline already crushed is refused, and costs nothing to refuse',
     { timeout: LONG },
     async () => {
-      const file = await buildSampleFile('squeezed', codecs)
+      const file = await buildSampleFile('squeezed', codecs, loader)
       const result = await runDemo(file, codecs)
 
       expect(result.verdict, `expected a refusal, got: ${result.technicalReason}`).toBe('stopped')
@@ -115,7 +144,7 @@ describe('the three landing page promises', () => {
   )
 
   it('sample three: a photo saved as PNG saves a lot', { timeout: LONG }, async () => {
-    const file = await buildSampleFile('png', codecs)
+    const file = await buildSampleFile('png', codecs, loader)
     const result = await runDemo(file, codecs)
 
     expect(result.verdict, `expected a saving, got: ${result.technicalReason}`).toBe('saved')
@@ -128,14 +157,55 @@ describe('the three landing page promises', () => {
     'the two coast samples are the same picture at different sizes',
     { timeout: LONG },
     async () => {
-      const fresh = await buildSampleFile('fresh', codecs)
-      const squeezed = await buildSampleFile('squeezed', codecs)
+      const fresh = await buildSampleFile('fresh', codecs, loader)
+      const squeezed = await buildSampleFile('squeezed', codecs, loader)
       // Same scene, so the crushed copy must be the smaller file.
       expect(squeezed.bytes.length).toBeLessThan(fresh.bytes.length)
       expect(fresh.container).toBe('jpeg')
       expect(squeezed.container).toBe('jpeg')
     },
   )
+})
+
+describe('demo sources', () => {
+  it('describes every picture the demo needs', () => {
+    expect(DEMO_SOURCES.length).toBe(2)
+    for (const source of DEMO_SOURCES) {
+      expect(source.file.startsWith('demo/')).toBe(true)
+      expect(source.needs.length).toBeGreaterThan(40)
+    }
+  })
+
+  it('falls back to a drawn scene when no photograph is committed', async () => {
+    const drawn = await loadSource('coast', drawnOnly)
+    expect(drawn.photographed).toBe(false)
+    expect(drawn.image.width).toBe(SCENE_WIDTH)
+  })
+
+  it('never ships an image without a recorded credit', async () => {
+    // Mirrors the corpus rule: license and source are required, and CI is the
+    // thing that enforces it rather than anyone's memory.
+    const dir = fileURLToPath(new URL('../public/demo', import.meta.url))
+    const files = (await readdir(dir)).filter((name) => /\.(webp|jpe?g|png|avif)$/i.test(name))
+    if (files.length === 0) return
+
+    const credits = JSON.parse(await readFile(`${dir}/credits.json`, 'utf8'))
+    for (const file of files) {
+      const entry = credits.entries?.find((e: { file: string }) => e.file === file)
+      expect(entry, `public/demo/${file} has no entry in credits.json`).toBeTruthy()
+      expect(entry.license, `${file} has no license`).toBeTruthy()
+      expect(entry.credit, `${file} has no credit`).toBeTruthy()
+      expect(entry.source, `${file} has no source`).toBeTruthy()
+    }
+  })
+
+  it('uses the committed photographs when they are there', { timeout: LONG }, async () => {
+    const source = await loadSource('coast', loader)
+    // Whichever path ran, the demo gets a picture of exactly the size it plans
+    // its encodes around.
+    expect(source.image.width).toBe(SCENE_WIDTH)
+    expect(source.image.height).toBe(SCENE_HEIGHT)
+  })
 })
 
 describe('runDemo on arbitrary input', () => {
