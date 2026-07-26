@@ -193,8 +193,10 @@ describe('demo sources', () => {
     for (const file of files) {
       const entry = credits.entries?.find((e: { file: string }) => e.file === file)
       expect(entry, `public/demo/${file} has no entry in credits.json`).toBeTruthy()
+      // license and source are the two the corpus manifest requires as well.
+      // credit is optional: it names the photographer when that is known, and
+      // an invented name would be worse than an absent one.
       expect(entry.license, `${file} has no license`).toBeTruthy()
-      expect(entry.credit, `${file} has no credit`).toBeTruthy()
       expect(entry.source, `${file} has no source`).toBeTruthy()
     }
   })

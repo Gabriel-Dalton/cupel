@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "demo:photo": "node scripts/demo-photo.mjs"
+    "demo:photo": "node scripts/demo-photo.mjs",
+    "demo:photos": "node scripts/demo-photo.mjs --all"
   },
   "dependencies": {
     "@cupel/codecs-node": "workspace:*",
