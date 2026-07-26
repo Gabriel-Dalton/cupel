@@ -177,7 +177,7 @@ describe('demo sources', () => {
   })
 
   it('falls back to a drawn scene when no photograph is committed', async () => {
-    const drawn = await loadSource('coast', drawnOnly)
+    const drawn = await loadSource('hero', drawnOnly)
     expect(drawn.photographed).toBe(false)
     expect(drawn.image.width).toBe(SCENE_WIDTH)
   })
@@ -202,7 +202,7 @@ describe('demo sources', () => {
   })
 
   it('uses the committed photographs when they are there', { timeout: LONG }, async () => {
-    const source = await loadSource('coast', loader)
+    const source = await loadSource('hero', loader)
     // Whichever path ran, the demo gets a picture of exactly the size it plans
     // its encodes around.
     expect(source.image.width).toBe(SCENE_WIDTH)

@@ -1,19 +1,22 @@
 {
   "v": 1,
-  "comment": "Candidate photographs for the landing page demo. Run `pnpm demo:photos` to pull these and write public/demo. The script assigns the slots by measurement rather than by order: the busiest picture becomes the PNG sample, because that is the one whose lesson depends on dense detail. Anything left over is reported and not used.",
+  "comment": "Candidate photographs for the landing page demo. Run `pnpm demo:photos` to pull these and write public/demo. The script assigns the slots by measurement rather than by order: the picture that is largest when stored losslessly becomes the PNG sample, because that is the slot whose lesson depends on dense detail. Anything left over is reported and not used. The notes describe what each frame shows so nobody has to open three URLs to find out.",
   "candidates": [
     {
       "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1948&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "note": "Green hills and a cliff edge under low cloud at sunrise. Grass and rock texture across the foreground, soft sky and mist above.",
       "license": "Unsplash License",
       "source": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05"
     },
     {
       "url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1748&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "note": "Forested ridges in hazy backlight with a figure standing on a rock. Dense conifer texture over most of the frame, softening into haze at the top.",
       "license": "Unsplash License",
       "source": "https://images.unsplash.com/photo-1469474968028-56623f02e42e"
     },
     {
       "url": "https://images.unsplash.com/photo-1785014413554-e3fdc6e89ae4?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "note": "A canal city at dusk with boat light trails on the water. Fine architectural detail on the right, smooth sky and water elsewhere.",
       "license": "Unsplash License",
       "source": "https://images.unsplash.com/photo-1785014413554-e3fdc6e89ae4"
     }

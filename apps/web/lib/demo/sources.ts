@@ -17,7 +17,12 @@ import { SCENE_HEIGHT, SCENE_WIDTH, buildScene, type SceneName } from './scenes'
  * without its entry.
  */
 
-export type SourceName = SceneName
+/**
+ * Slots are named for the job the picture does, not for what is in it. The
+ * photographs get swapped, and a file called coast.webp with a photograph of
+ * Venice in it is the kind of small lie that outlives whoever wrote it.
+ */
+export type SourceName = 'hero' | 'busy'
 
 export type DemoSource = {
   name: SourceName
@@ -25,6 +30,8 @@ export type DemoSource = {
   file: string
   /** What the picture has to show for the demo to teach anything. */
   needs: string
+  /** The drawn scene used when no photograph is committed for this slot. */
+  fallbackScene: SceneName
 }
 
 /** Every source photograph is resized to exactly this, then encoded to webp. */
@@ -33,20 +40,22 @@ export const SOURCE_HEIGHT = SCENE_HEIGHT
 
 export const DEMO_SOURCES: readonly DemoSource[] = [
   {
-    name: 'coast',
-    file: 'demo/coast.webp',
+    name: 'hero',
+    file: 'demo/hero.webp',
     needs:
       'An ordinary full quality photograph with real texture in it: a landscape, a street, a ' +
       'room. Smooth gradients like an empty sky are the one thing to avoid, because a photo that ' +
       'is nearly all sky compresses so well that the demo stops being representative.',
+    fallbackScene: 'coast',
   },
   {
-    name: 'garden',
-    file: 'demo/garden.webp',
+    name: 'busy',
+    file: 'demo/busy.webp',
     needs:
-      'Something visually busy: foliage, a market stall, a crowd, gravel. This is the picture ' +
-      'that gets exported as a PNG, and dense detail is what makes a lossless container ' +
-      'absurdly large.',
+      'Something visually busy: foliage, a city at dusk, a market stall, gravel. This is the ' +
+      'picture that gets exported as a PNG, and dense detail is what makes a lossless container ' +
+      'enormous.',
+    fallbackScene: 'garden',
   },
 ]
 
@@ -81,7 +90,7 @@ export type SourceLoader = {
 export async function loadSource(name: SourceName, loader: SourceLoader): Promise<LoadedSource> {
   const source = demoSource(name)
   const bytes = await loader.readPhoto(source)
-  if (!bytes) return { image: buildScene(name), photographed: false }
+  if (!bytes) return { image: buildScene(source.fallbackScene), photographed: false }
   const image = await loader.decodeWebp(bytes)
   return { image, photographed: true }
 }

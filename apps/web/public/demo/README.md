@@ -4,10 +4,15 @@ The landing page demo runs on two pictures: one ordinary photograph that still
 has quality left in it, and one visually busy photograph that somebody exported
 as a PNG. `lib/demo/sources.ts` describes what each one has to show.
 
-If `coast.webp` and `garden.webp` are here, the demo uses them. If they are not,
-the page draws two scenes with arithmetic instead and says so under the picker,
-because calling a generated image a photograph would be a small lie in the one
-section of the site that asks readers to trust their own eyes.
+If `hero.webp` and `busy.webp` are here, the demo uses them. The names describe
+the job each picture does rather than what is in it, because the photographs get
+swapped and a file called `coast.webp` holding a photograph of a city is a small
+lie that outlives whoever wrote it.
+
+If the files are not here, the page draws two scenes with arithmetic instead and
+says so under the picker, because calling a generated image a photograph would be
+a small lie in the one section of the site that asks readers to trust their own
+eyes.
 
 ## Adding the photographs
 
@@ -22,14 +27,14 @@ at quality 92, and writes both files plus `credits.json`.
 
 Which photograph lands in which slot is decided by measurement, not by the order
 they are listed: the script stores each candidate losslessly and gives the
-largest result to `garden`, because that slot exists to show how big a
-photograph gets when it is saved as a PNG. It prints every measurement and every
-choice, and it names any candidate it did not use.
+largest result to `busy`, because that slot exists to show how big a photograph
+gets when it is saved as a PNG. The next one becomes `hero`. It prints every
+measurement and every choice, and it names any candidate it did not use.
 
 To fill one slot by hand, from a local file or a direct image URL:
 
 ```bash
-pnpm demo:photo coast ~/Downloads/photo.jpg \
+pnpm demo:photo hero ~/Downloads/photo.jpg \
   --source https://unsplash.com/photos/xxxxxxxx \
   --credit "Photographer Name"
 ```

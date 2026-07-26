@@ -11,9 +11,9 @@
 //   pnpm demo:photos
 //     Pulls every candidate in scripts/demo-photos.json and fills both slots.
 //     Which photograph lands in which slot is decided by measuring them, not by
-//     the order they are listed in: see chooseSlots below.
+//     the order they are listed in: see busyness and fillFromList below.
 //
-//   pnpm demo:photo <coast|garden> <file-or-url> --license "..." --source <url>
+//   pnpm demo:photo <hero|busy> <file-or-url> --license "..." --source <url>
 //     Fills one slot from a local file or a direct image URL. Use this to
 //     override a choice, or when the photograph is not in the list.
 //
@@ -36,13 +36,16 @@ const WIDTH = 960
 const HEIGHT = 640
 
 /**
- * The two slots, and what each one is for. Order matters here: chooseSlots
- * fills them from the busiest candidate down, because the PNG lesson is the one
- * that depends on the picture being dense.
+ * The two slots, and what each one is for. Order matters here: fillFromList
+ * works down this list from the busiest candidate, because the PNG lesson is the
+ * one that depends on the picture being dense.
+ *
+ * The names describe the job, not the picture. lib/demo/sources.ts says what
+ * each slot needs to show.
  */
 const SLOTS = [
-  { name: 'garden', wants: 'the busiest picture, which becomes the huge PNG' },
-  { name: 'coast', wants: 'an ordinary photograph with texture in it' },
+  { name: 'busy', wants: 'the busiest picture, which becomes the huge PNG' },
+  { name: 'hero', wants: 'an ordinary photograph with texture in it' },
 ]
 
 function fail(message) {
@@ -157,7 +160,7 @@ async function fillOne(argv) {
   if (!SLOTS.some((slot) => slot.name === name)) {
     fail(`unknown picture "${name}", expected one of ${SLOTS.map((s) => s.name).join(', ')}`)
   }
-  if (!input) fail('usage: demo:photo <coast|garden> <file-or-url> --license ... --source ...')
+  if (!input) fail('usage: demo:photo <hero|busy> <file-or-url> --license ... --source ...')
 
   const flags = { license: 'Unsplash License' }
   for (let i = 0; i < rest.length; i += 2) {

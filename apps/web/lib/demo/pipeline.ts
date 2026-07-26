@@ -40,25 +40,29 @@ export type SampleSpec = {
  *
  * "squeezed" is deliberately the same photograph as "fresh", because the
  * lesson is that two copies of one picture can deserve opposite treatment.
+ *
+ * File names stay generic because the photographs behind them get swapped
+ * (see sources.ts): they describe the file's history, which is the part the
+ * reader is meant to notice, and not what the picture shows.
  */
 export const SAMPLES: readonly SampleSpec[] = [
   {
     kind: 'fresh',
     title: 'Straight off a camera',
     blurb: 'A full quality photo, the kind you get before anything has touched it.',
-    fileName: 'coast-original.jpg',
+    fileName: 'photo-original.jpg',
   },
   {
     kind: 'squeezed',
     title: 'Already squashed by a CMS',
     blurb: 'The same photo, but something in the pipeline already compressed it hard. Twice.',
-    fileName: 'coast-from-cms.jpg',
+    fileName: 'photo-from-cms.jpg',
   },
   {
     kind: 'png',
     title: 'A photo saved as PNG',
     blurb: 'Someone exported a photo in a format built for logos and screenshots.',
-    fileName: 'garden.png',
+    fileName: 'photo-as-png.png',
   },
 ]
 
@@ -112,7 +116,7 @@ export async function buildSampleFile(
   loader: SourceLoader,
 ): Promise<SampleFile> {
   if (kind === 'png') {
-    const source = await loadSource('garden', loader)
+    const source = await loadSource('busy', loader)
     return {
       bytes: await codecs.encode('png', source.image, null),
       container: 'png',
@@ -120,7 +124,7 @@ export async function buildSampleFile(
     }
   }
 
-  const source = await loadSource('coast', loader)
+  const source = await loadSource('hero', loader)
   if (kind === 'fresh') {
     return {
       bytes: await codecs.encode('jpeg', source.image, 94),
