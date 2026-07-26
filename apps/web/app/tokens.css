@@ -1,0 +1,114 @@
+/*
+ * cupel design tokens.
+ *
+ * The identity is the instrument, not the theme park: bone ash neutrals
+ * (the cupel itself), one molten amber accent (the assay bead), hairline
+ * ledger rules, tabular numerals. Dark is the canonical theme; light is a
+ * full first class theme, both driven from the same token names.
+ *
+ * Every colour, size, and duration used anywhere in the site comes from
+ * this file. Components never carry raw values.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Type families are provided by next/font in app/layout.tsx:
+     --font-display (Fraunces), --font-body (IBM Plex Sans),
+     --font-mono (IBM Plex Mono). */
+
+  /* Type scale */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.375rem;
+  --text-xl: clamp(1.5rem, 1.15rem + 1.75vw, 2.2rem);
+  --text-2xl: clamp(1.9rem, 1.3rem + 3vw, 3rem);
+  --text-hero: clamp(2.5rem, 1.7rem + 4.5vw, 4.6rem);
+
+  --leading-tight: 1.12;
+  --leading-snug: 1.35;
+  --leading-body: 1.65;
+
+  --tracking-wide: 0.18em;
+  --tracking-wider: 0.24em;
+
+  --weight-light: 340;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Spacing scale, 4px base */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  /* Radii: an assay ledger has sharp corners. Keep them near zero. */
+  --radius-1: 2px;
+  --radius-2: 4px;
+
+  /* Hairlines and elevation. Elevation is expressed with lines, not blur. */
+  --shadow-1: 0 1px 0 rgb(0 0 0 / 0.04);
+
+  /* Layout */
+  --shell-max: 72rem;
+  --shell-pad: clamp(1.25rem, 5vw, 2.5rem);
+  --header-h: 3.5rem;
+
+  /* Z layers */
+  --z-header: 20;
+  --z-skip: 100;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-slow: 420ms;
+
+  /* Light theme: bone paper, warm ink, bronze accent */
+  --bg: #f5f2ea;
+  --bg-raised: #faf8f2;
+  --bg-inset: #ece7da;
+  --ink: #211d16;
+  --ink-muted: #5b5347;
+  --ink-faint: #8b8271;
+  --line: #ddd6c8;
+  --line-strong: #b9b09c;
+  --accent: #b8781d;
+  --accent-ink: #8a5200;
+  --accent-wash: rgb(184 120 29 / 0.08);
+  --ok: #2f6b46;
+  --selection-bg: #ecd9b4;
+  --selection-ink: #211d16;
+  --glow: rgb(184 120 29 / 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark theme: charcoal crucible, bone text, molten amber accent */
+    --bg: #141210;
+    --bg-raised: #1b1815;
+    --bg-inset: #0e0d0b;
+    --ink: #ebe5d8;
+    --ink-muted: #b2a994;
+    --ink-faint: #857c6b;
+    --line: #2b2721;
+    --line-strong: #474035;
+    --accent: #d9a441;
+    --accent-ink: #d9a441;
+    --accent-wash: rgb(217 164 65 / 0.09);
+    --ok: #93c4a1;
+    --selection-bg: #3f351d;
+    --selection-ink: #ebe5d8;
+    --glow: rgb(217 164 65 / 0.06);
+    --shadow-1: 0 1px 0 rgb(0 0 0 / 0.4);
+  }
+}
