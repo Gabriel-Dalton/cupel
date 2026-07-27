@@ -1,6 +1,7 @@
 {
   "v": 1,
-  "comment": "Candidate photographs for the landing page demo. Run `pnpm demo:photos` to pull these and write public/demo. The script assigns the slots by measurement rather than by order: the picture that is largest when stored losslessly becomes the PNG sample, because that is the slot whose lesson depends on dense detail. Anything left over is reported and not used. The notes describe what each frame shows so nobody has to open three URLs to find out.",
+  "comment": "Candidate photographs for the landing page demo. The two the demo currently uses are already committed under public/demo, with their licence and source in credits.json. Re-run `pnpm demo:photos` to rebuild them from these URLs, after changing the demo size for instance. The script assigns the slots by measurement rather than by order: the picture that is largest when stored losslessly becomes the PNG sample, because that is the slot whose lesson depends on dense detail. Anything left over is reported and not used. The notes describe what each frame shows so nobody has to open three URLs to find out.",
+  "measured": "Stored losslessly at 960x640: the hills 969 kB, the canal city 693 kB, the forested ridges 619 kB. So the hills became busy.webp and the canal city became hero.webp, and the ridges are spare.",
   "candidates": [
     {
       "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1948&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
