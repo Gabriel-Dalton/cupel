@@ -21,16 +21,16 @@
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^15.5.22",
     "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@types/mdx": "^2.0.14",
-    "@types/node": "^26.1.1",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "sharp": "^0.34.5",
+    "@types/node": "^26.6.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "sharp": "^0.35.4",
     "typescript": "^5.7.0",
     "vitest": "^3.2.7"
   }
